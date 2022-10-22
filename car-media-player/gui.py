@@ -21,8 +21,9 @@ class GUI(customtkinter.CTk):
 		self.wm_attributes('-fullscreen', 'True')
 
 
-		self.side_menu = AnimatedFrame(self)
 
+		self.side_menu = AnimatedFrame(self)
+		self.side_menu.wm_attributes('-alpha', 0.5)
 
 		self.side_menu.place(relx=0.8, rely=0, relwidth=0.3, relheight=1)
 
@@ -30,7 +31,7 @@ class GUI(customtkinter.CTk):
 		print(self.width, self.height)
 		print(self.side_menu.width, self.side_menu.height)
 
-		self.side_menu.set_animation_destination(self.width*0.7, 0, animation_duration=3500)
+		self.side_menu.set_animation_destination(self.width*0.7, 0, animation_duration=300)
 		self.side_menu.bind('<ButtonPress-1>', self.expand_side_menu)
 
 
@@ -40,7 +41,7 @@ class GUI(customtkinter.CTk):
 		to blur and disable the widgets on the main screen'''
 
 		self.side_menu.trigger_animation()
-		self.after(4000, self.side_menu.return_to_initial_position)
+		#self.after(4000, self.side_menu.return_to_initial_position)
 
 
 
