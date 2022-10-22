@@ -24,13 +24,13 @@ class GUI(customtkinter.CTk):
 		self.side_menu = AnimatedFrame(self)
 
 
-		self.side_menu.place(relx=0.8, rely=0, relwidth=0.2, relheight=1)
+		self.side_menu.place(relx=0.8, rely=0, relwidth=0.3, relheight=1)
 
 
 		print(self.width, self.height)
 		print(self.side_menu.width, self.side_menu.height)
 
-		self.side_menu.set_animation_destination(self.width*0.7, 0)
+		self.side_menu.set_animation_destination(self.width*0.7, 0, animation_duration=3500)
 		self.side_menu.bind('<ButtonPress-1>', self.expand_side_menu)
 
 
@@ -38,9 +38,9 @@ class GUI(customtkinter.CTk):
 		'''Moves the side_menu in to the main widget to reveal the menu buttons 
 		while also disabling the main frame and placing a ghost frame 
 		to blur and disable the widgets on the main screen'''
-		print('expanding')
 
-		self.side_menu.move_frame()
+		self.side_menu.trigger_animation()
+		self.after(4000, self.side_menu.return_to_initial_position)
 
 
 
