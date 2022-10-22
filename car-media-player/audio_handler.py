@@ -9,6 +9,7 @@ from PIL import Image
 
 
 class AudioHandler():
+	'''This class can load a single audio file, play and/or pause it'''
 	def __init__(self):
 		self.playing = False
 		self.playback_device = PlaybackDevice()
