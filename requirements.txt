@@ -1,0 +1,2 @@
+miniaudio >= 1.52
+customtkinter >= 4.6.3

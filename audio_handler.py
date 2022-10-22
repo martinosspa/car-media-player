@@ -51,7 +51,6 @@ if __name__ == '__main__':
 	from time import sleep
 	AH = AudioHandler()
 	AH.load_single_file('audio/3. Lonely Driving.mp3')
-	print(AH.title)
 	AH.play_or_resume()
 	sleep(10)
 	AH.pause()
