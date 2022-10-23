@@ -1,6 +1,7 @@
 import customtkinter
 from AnimatedFrame import AnimatedFrame
 from ImageManipulationFrame import ImageManipulationFrame
+from AudioHandler import AudioHandler
 from screeninfo import get_monitors
 from typing import Tuple
 
@@ -20,17 +21,23 @@ class GUI(customtkinter.CTk):
 
 		#self.geometry('1024x600')
 		self.wm_attributes('-fullscreen', 'True')
+		self._setup_main_audio_menu()
+		self._setup_side_menu()
+
+
+	def _setup_main_audio_menu(self) -> None:
+		'''This setups the entire audio menu screen and initializes the AudioHandler'''
+		self.main_audio_menu = customtkinter.CTkFrame(self)
+		self.main_audio_menu_background = customtkinter.CTkLabel(self.main_audio_menu)
+		self.audio_handler = AudioHandler()
+		self.audio_handler.load_first_found_file_and_queue()
 
 
 
+	def _setup_side_menu(self) -> None:
+		'''This setups the side menu'''
 		self.side_menu = AnimatedFrame(self)
-		
 		self.side_menu.place(relx=0.8, rely=0, relwidth=0.3, relheight=1)
-
-
-		print(self.width, self.height)
-		print(self.side_menu.width, self.side_menu.height)
-
 		self.side_menu.set_animation_destination(self.width*0.7, 0, animation_duration=300)
 		self.side_menu.bind('<ButtonPress-1>', self.expand_side_menu)
 

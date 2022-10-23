@@ -1,7 +1,7 @@
-
 import customtkinter
 from typing import Optional
-
+from PIL.ImageFilter import GaussianBlur
+from pyscreenshot import grab
 class ImageManipulationFrame(customtkinter.CTkFrame):
 	x : int
 	y : int
@@ -29,18 +29,20 @@ class ImageManipulationFrame(customtkinter.CTkFrame):
 		#print(f'Frame at {self.x},{self.y} {self.width}x{self.height}')
 		self.get_background_image()
 		if self.blurred:
-			from PIL.ImageFilter import GaussianBlur
+			
 			self.image.filter(GaussianBlur(3))
 
+		self.image.show()
 		super().place(x=self.x, y=self.y, width=self.width, height=self.height)
 
 
 
 	def blur_background_image(self):
+		'''Sets the blur flag for when the background image is taken'''
 		self.blurred = True
 
 	def get_background_image(self):
-		from pyscreenshot import grab
+		'''Gets the background image using pyscreenshot'''
+		
 		self.image = grab(bbox=(self.x, self.y, 
 								self.x + self.width, self.y + self.height))
-		#self.image.show()
