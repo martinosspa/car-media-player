@@ -1,5 +1,6 @@
 import customtkinter
 from AnimatedFrame import AnimatedFrame
+from ImageManipulationFrame import ImageManipulationFrame
 from screeninfo import get_monitors
 from typing import Tuple
 
@@ -23,8 +24,7 @@ class GUI(customtkinter.CTk):
 
 
 		self.side_menu = AnimatedFrame(self)
-		self.side_menu.wm_attributes('-alpha', 0.5)
-
+		
 		self.side_menu.place(relx=0.8, rely=0, relwidth=0.3, relheight=1)
 
 
@@ -39,8 +39,11 @@ class GUI(customtkinter.CTk):
 		'''Moves the side_menu in to the main widget to reveal the menu buttons 
 		while also disabling the main frame and placing a ghost frame 
 		to blur and disable the widgets on the main screen'''
-
+		self.blurred_frame = ImageManipulationFrame(self)
+		self.blurred_frame.blur_background_image()
+		self.blurred_frame.place(x=0, y=0, relwidth=0.7, relheight=1)
 		self.side_menu.trigger_animation()
+		
 		#self.after(4000, self.side_menu.return_to_initial_position)
 
 
