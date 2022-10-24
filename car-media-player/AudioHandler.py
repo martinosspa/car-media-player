@@ -24,11 +24,11 @@ class AudioHandler():
 	def load_track(self) -> None:
 		'''Loads the current track in to memory from current_track_position
 		   Cant load a track if another one is already playing'''
-		   
+
 		if not self.playing and self.playback_device.running:
 			self.playback_device.stop()
 		if not 0 <= self.current_track_position < self.current_library_max_length:
-			print(f'audio library position out of bounds [{0} - {self.current_library_max_length}] -> {self.current_track_position}')
+			Raise(f'audio library position out of bounds [{0} - {self.current_library_max_length}] -> {self.current_track_position}')
 			return
 
 		self.current_track = self.audio_queue[self.current_track_position]
@@ -43,10 +43,8 @@ class AudioHandler():
 
 	def play_or_resume(self) -> None:
 		'''Plays the track at the current_track_position'''
-		print(f'current position: {self.current_track_position}')
 		if not self.audio_stream and not self.playback_device.running:
 			self.load_track()
-		print(self.playback_device.running)
 		self.playback_device.start(self.audio_stream)
 		self.playing = True
 		while self.playing:
@@ -58,11 +56,11 @@ class AudioHandler():
 		
 
 	def progress_audio_callback(self, frame_count: int) -> None:
-		print(f'{self._current_frame} / {self._frame_max}')
+		# print(f'{self._current_frame} / {self._frame_max}')
 		self._current_frame += frame_count
 
 	def end_audio_callback(self) -> None:
-		'''This raises a flag playing to end the while loop hanging the program so a weird race error is not raised'''
+		'''This sets 'playing' to false to end the while loop hanging the program so a weird race error is not raised'''
 		self.playing = False
 
 	def close(self) -> None:
@@ -86,7 +84,7 @@ class AudioHandler():
 		self.current_track_position -= 1
 		self.play_or_resume()
 
-	def load_first_found_file_and_queue(self) -> None:
+	def load_queue_from_path(self) -> None:
 		for file_name in os.listdir(self.directory):
 			audio_file_name = os.path.join(self.directory, file_name)
 			if os.path.isfile(audio_file_name):
@@ -97,11 +95,9 @@ class AudioHandler():
 
 if __name__ == '__main__':
 	# this is for testing purposes
-	from time import sleep
-
+	
 	AH = AudioHandler()
-	AH.load_first_found_file_and_queue()
+	AH.load_queue_from_path()
 	print(AH.audio_queue)
 	AH.play_or_resume()
-	#input('enter to continue')
 	AH.close()

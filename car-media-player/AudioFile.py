@@ -18,13 +18,10 @@ class AudioFile():
 
 		# get frame info for progress callbacks and displaying
 		info = mp3_get_file_info(self.file_name)
-		print(f'{self.title} -> {info}')
 		self._frame_size = info.sample_rate
 		self._total_frame_count = info.num_frames
-		print(self._frame_size, self._total_frame_count)
 		
 		self.original_stream = stream_file(self.file_name)
-		#next(self.original_stream)
 		self.mutable_stream = self.original_stream
 
 
