@@ -5,3 +5,5 @@ __pycache__/
 
 # Audio Ignore
 *.mp3
+*.iml
+*.xml
