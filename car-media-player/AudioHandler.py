@@ -43,8 +43,7 @@ class AudioHandler():
 
 	def play_or_resume(self) -> None:
 		'''Plays the track at the current_track_position'''
-		if not self.audio_stream and not self.playback_device.running:
-			self.load_track()
+
 		self.playback_device.start(self.audio_stream)
 		self.playing = True
 		while self.playing:
@@ -77,6 +76,7 @@ class AudioHandler():
 	def go_to_next_track(self) -> None:
 		self.pause()
 		self.current_track_position += 1
+		self.load_track()
 		self.play_or_resume()
 
 	def go_to_previous_track(self) -> None:
@@ -98,6 +98,8 @@ if __name__ == '__main__':
 	
 	AH = AudioHandler()
 	AH.load_queue_from_path()
+	AH.load_track()
 	print(AH.audio_queue)
 	AH.play_or_resume()
+
 	AH.close()
