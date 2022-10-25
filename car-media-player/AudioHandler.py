@@ -5,7 +5,7 @@ from typing import Generator
 
 
 class AudioHandler():
-	'''This class can load a single audio file, play and/or pause it'''
+	"""This class can load a single audio file, play and/or pause it"""
 
 	def __init__(self):
 		self._AUDIO_FILE_EXTENSIONS = ['.mp3']
@@ -22,8 +22,8 @@ class AudioHandler():
 		self._queue_next_track = False
 
 	def load_track(self) -> None:
-		'''Loads the current track in to memory from current_track_position
-		   Cant load a track if another one is already playing'''
+		"""Loads the current track in to memory from current_track_position
+		   Cant load a track if another one is already playing"""
 
 		if not self.playing and self.playback_device.running:
 			self.playback_device.stop()
@@ -42,7 +42,7 @@ class AudioHandler():
 		next(self.audio_stream)
 
 	def play_or_resume(self) -> None:
-		'''Plays the track at the current_track_position'''
+		"""Plays the track at the current_track_position"""
 
 		self.playback_device.start(self.audio_stream)
 		self.playing = True
@@ -56,11 +56,11 @@ class AudioHandler():
 		self._current_frame += frame_count
 
 	def end_audio_callback(self) -> None:
-		'''This sets 'playing' to false to end the while loop hanging the program so a weird race error is not raised'''
+		"""This sets 'playing' to false to end the while loop hanging the program so a weird race error is not raised"""
 		self.playing = False
 
 	def close(self) -> None:
-		'''This closes the audio handler safely'''
+		"""This closes the audio handler safely"""
 		self.playback_device.stop()
 		self.playing = False
 		self.audio_stream = None

@@ -5,9 +5,10 @@ from io import BytesIO
 from PIL import Image
 from copy import deepcopy
 from typing import Generator
-class AudioFile():
-	'''This class is used to load audio file info and audio streams in to memory'''
-	def __init__(self, path:str):
+class AudioFile:
+	"""This class is used to load audio file info and audio streams"""
+
+	def __init__(self, path:str) -> None:
 		self.file_name = path
 		tags = ID3(self.file_name)
 		pict = tags.get('APIC:').data if tags.get('APIC:') else None
@@ -24,13 +25,11 @@ class AudioFile():
 		self.original_stream = stream_file(self.file_name)
 		self.mutable_stream = self.original_stream
 
-
-
 	def get_new_stream(self) -> Generator:
 		return self.mutable_stream
 
 	def get_frame_volume(self) -> int:
-		'''Gets the total number of audio frames this audio file has'''
+		"""Gets the total number of audio frames this audio file has"""
 		return self._total_frame_count
 
 	def __repr__(self) -> str:

@@ -1,20 +1,25 @@
 import customtkinter
-from typing import Optional
+from typing import Optional, Callable
 
 class AnimatedFrame(customtkinter.CTkFrame):
-	width : int
-	height : int
-	x : int
-	y : int
-	animation_triggered : bool = False
+	"""Custom CTk frame that can have an animation"""
+	x:int
+	y: int
+	width:int
+	height: int
+	animation_triggered: bool = False
 	_at_final_destination: bool = False
-	def __init__(self, *args, **kwargs):
+	_initial_x:int
+	_initial_y: int
+	_final_x:int
+	_final_y: int
+	_animation_duration: int = 0
+
+	def __init__(self, *args, **kwargs) -> None:
 		super().__init__(*args, **kwargs)
 
-
-
 	def set_animation_destination(self, x:int, y:int, animation_duration:Optional[int] = 200) -> None:
-		'''Set the destination x,y for the end of the animation and the duration'''
+		"""Set the destination x,y for the end of the animation and the duration"""
 		self._initial_x = self.x
 		self._initial_y = self.y
 		self._final_x = x
@@ -44,7 +49,7 @@ class AnimatedFrame(customtkinter.CTkFrame):
 		super().place(x=self.x, y=self.y, width=self.width, height=self.height)
 
 	def trigger_animation(self) -> None:
-		'''Trigger the animation'''
+		"""Trigger the animation"""
 		if not self.animation_triggered:
 			self.place(x=self.x + self._animation_change_x, 
 					   y=self.y + self._animation_change_y, 
@@ -60,8 +65,10 @@ class AnimatedFrame(customtkinter.CTkFrame):
 				self.animation_triggered = True
 			self.master.after(1, self.trigger_animation)
 				
-	def return_to_initial_position(self) -> None:
-		'''Return to initial position before set_animation_destination was called''' 
+	def return_to_initial_position(self, callback:Optional[Callable] = None) -> None:
+		"""Return to initial position before set_animation_destination was called.
+		   This is called recursively with 1ms of delay"""
+
 		if self.animation_triggered:
 			self.place(x=self.x - self._animation_change_x, 
 					   y=self.y - self._animation_change_y, 
@@ -72,8 +79,10 @@ class AnimatedFrame(customtkinter.CTkFrame):
 				# round the values at the end so there's no future conflicts comparing floats to integers
 				self.x = round(self.x)
 				self.y = round(self.y)
+				if callback:
+					callback()
 				self.animation_triggered = False
-			self.master.after(1, self.return_to_initial_position)
+			self.master.after(1, lambda : self.return_to_initial_position(callback=callback))
 
 
 	# This needs to be added because there's a bug in customtkinter
