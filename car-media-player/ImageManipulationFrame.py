@@ -28,11 +28,11 @@ class ImageManipulationFrame(customtkinter.CTkFrame):
 		self.height = int(self.master.height * relheight) if not relheight == 0 else height
 		#print(f'Frame at {self.x},{self.y} {self.width}x{self.height}')
 		self.get_background_image()
-		if self.blurred:
-			
+		if self.blurred:	
 			self.image.filter(GaussianBlur(3))
-
-		self.image.show()
+			
+		# debug
+		# self.image.show()
 		super().place(x=self.x, y=self.y, width=self.width, height=self.height)
 
 

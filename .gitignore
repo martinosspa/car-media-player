@@ -3,7 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Audio Ignore
-*.mp3
+# Other config files
 *.iml
 *.xml
+
+# Audio Ignore
+*.mp3
+
+
+# Image ignore
+*.jpeg

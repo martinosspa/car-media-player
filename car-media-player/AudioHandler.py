@@ -98,6 +98,5 @@ if __name__ == '__main__':
 
 	AH = AudioHandler()
 	AH.load_queue_from_path()
-	AH.current_track_position = -2
 	AH.load_track()
 	AH.play_or_resume()
