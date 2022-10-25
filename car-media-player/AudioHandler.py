@@ -50,10 +50,7 @@ class AudioHandler():
 			pass
 		else:
 			self.go_to_next_track()
-
-
-		
-
+			
 	def progress_audio_callback(self, frame_count: int) -> None:
 		# print(f'{self._current_frame} / {self._frame_max}')
 		self._current_frame += frame_count
@@ -84,6 +81,7 @@ class AudioHandler():
 		self.current_track_position -= 1
 		self.play_or_resume()
 
+
 	def load_queue_from_path(self) -> None:
 		for file_name in os.listdir(self.directory):
 			audio_file_name = os.path.join(self.directory, file_name)
@@ -92,7 +90,8 @@ class AudioHandler():
 					self.audio_queue.append(AudioFile(audio_file_name))
 		self.current_library_max_length = len(self.audio_queue)
 
-
+	def __del__(self) -> None:
+		self.close()
 if __name__ == '__main__':
 	# this is for testing purposes
 	
@@ -101,5 +100,3 @@ if __name__ == '__main__':
 	AH.load_track()
 	print(AH.audio_queue)
 	AH.play_or_resume()
-
-	AH.close()
