@@ -27,8 +27,8 @@ class AudioHandler():
 
 		if not self.playing and self.playback_device.running:
 			self.playback_device.stop()
-		if not 0 <= self.current_track_position < self.current_library_max_length:
-			Raise(f'audio library position out of bounds [{0} - {self.current_library_max_length}] -> {self.current_track_position}')
+		if not 0 <= self.current_track_position <= self.current_library_max_length:
+			raise IndexError(f'audio library position out of bounds [{0} - {self.current_library_max_length}] -> {self.current_track_position}')
 			return
 
 		self.current_track = self.audio_queue[self.current_track_position]
@@ -50,7 +50,7 @@ class AudioHandler():
 			pass
 		else:
 			self.go_to_next_track()
-			
+
 	def progress_audio_callback(self, frame_count: int) -> None:
 		# print(f'{self._current_frame} / {self._frame_max}')
 		self._current_frame += frame_count
@@ -79,6 +79,7 @@ class AudioHandler():
 	def go_to_previous_track(self) -> None:
 		self.pause()
 		self.current_track_position -= 1
+		self.load_track()
 		self.play_or_resume()
 
 
@@ -88,15 +89,15 @@ class AudioHandler():
 			if os.path.isfile(audio_file_name):
 				if os.path.splitext(audio_file_name)[1] in self._AUDIO_FILE_EXTENSIONS:
 					self.audio_queue.append(AudioFile(audio_file_name))
-		self.current_library_max_length = len(self.audio_queue)
+		self.current_library_max_length = len(self.audio_queue) - 1
 
 	def __del__(self) -> None:
 		self.close()
 if __name__ == '__main__':
 	# this is for testing purposes
-	
+
 	AH = AudioHandler()
 	AH.load_queue_from_path()
+	AH.current_track_position = -2
 	AH.load_track()
-	print(AH.audio_queue)
 	AH.play_or_resume()

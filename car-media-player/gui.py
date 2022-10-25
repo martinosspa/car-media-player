@@ -30,7 +30,8 @@ class GUI(customtkinter.CTk):
 		self.main_audio_menu = customtkinter.CTkFrame(self)
 		self.main_audio_menu_background = customtkinter.CTkLabel(self.main_audio_menu)
 		self.audio_handler = AudioHandler()
-		self.audio_handler.load_first_found_file_and_queue()
+		self.audio_handler.load_queue_from_path()
+		self.audio_handler.load_track()
 
 
 
