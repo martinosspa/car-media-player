@@ -1,9 +1,9 @@
-import customtkinter
+import tkinter
 from typing import Optional
 from PIL.ImageFilter import GaussianBlur
 from pyscreenshot import grab
 from PIL import Image, ImageTk
-class ImageManipulationFrame(customtkinter.CTkFrame):
+class ImageManipulationFrame(tkinter.Frame):
 	"""Custom CTK frame that can manipulate the image it has"""
 	x: int
 	y: int
@@ -35,7 +35,7 @@ class ImageManipulationFrame(customtkinter.CTkFrame):
 		if self.blurred:
 			self.image = self.image.filter(GaussianBlur(radius=3))
 		self.image = ImageTk.PhotoImage(self.image)
-		self.image_label = customtkinter.CTkLabel(master=self.master, image=self.image)
+		self.image_label = tkinter.Label(master=self.master, image=self.image)
 		# debug
 		#self.image.show()
 		self.image_label.place(x=self.x, y=self.y, width=self.width, height=self.height)
