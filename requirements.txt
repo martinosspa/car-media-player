@@ -2,3 +2,4 @@ miniaudio >= 1.52
 customtkinter >= 4.6.3
 screeninfo >= 0.8.1
 pyscreenshot >= 3.0
+mutagen >= 1.46.0
