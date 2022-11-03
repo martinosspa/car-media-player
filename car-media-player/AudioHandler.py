@@ -42,7 +42,7 @@ class AudioHandler(Thread):
 		super().start()
 		
 
-	def load_track(self) -> None:
+	def load_track(self, seek_to:Optional[int] = 0) -> None:
 		"""Loads the current track in to memory from current_track_position
 		   Cant load a track if another one is already playing"""
 		if not 0 <= self.current_track_position <= self.current_library_max_length:
@@ -54,7 +54,7 @@ class AudioHandler(Thread):
 		self._current_frame = 0
 
 		
-		self.audio_stream = stream_with_callbacks(self.current_track.get_new_stream(),
+		self.audio_stream = stream_with_callbacks(self.current_track.get_new_stream(seek_to=seek_to),
 												lambda frames: self._progress_audio_callback(frames),
 												lambda: self._set_next_track())
 		next(self.audio_stream)
@@ -62,6 +62,9 @@ class AudioHandler(Thread):
 		#This is used to load correct sample_rate in to Playback Device
 		if not self.current_track.info.sample_rate == self.playback_device.sample_rate:
 			self.playback_device = PlaybackDevice(sample_rate=self.current_track.info.sample_rate)
+
+		if seek_to:
+			self._current_frame = seek_to
 
 	def play_or_resume(self) -> None:
 		"""Plays the track at the current_track_position"""
@@ -120,8 +123,6 @@ class AudioHandler(Thread):
 			callback()
 		self.play_or_resume()
 
-
-
 	def load_queue_from_path(self, path:str) -> None:
 		"""Loads all supported audio file from given path"""
 
@@ -136,9 +137,7 @@ class AudioHandler(Thread):
 		"""Returns current track image as PIL image and it's file extension as a tuple"""
 		return self.audio_queue[self.current_track_position].get_image()
 
-	def __del__(self) -> None:
-		self.running = False
-		self.close()
+
 
 	def run(self) -> None:
 		"""This shouldn't be called from the user, but from itself since this is a threaded class"""
@@ -149,6 +148,15 @@ class AudioHandler(Thread):
 				if self.change_callback:
 					self.change_callback()
 			time.sleep(0.01)
+
+	def __del__(self) -> None:
+		self.close()
+
+	def seek_to_percentage(self, value: float) -> None:
+		self.pause()
+		seek_frame_value = int(value * self._frame_max)
+		self.load_track(seek_to=seek_frame_value)
+		self.play_or_resume()
 
 
 if __name__ == '__main__':

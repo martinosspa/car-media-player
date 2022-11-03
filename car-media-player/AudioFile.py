@@ -4,7 +4,7 @@ from mutagen.id3 import ID3
 from io import BytesIO
 from PIL import Image
 from copy import deepcopy, copy
-from typing import Generator, Tuple
+from typing import Generator, Tuple, Optional
 class AudioFile:
 	"""This class is used to load audio file info and audio streams"""
 
@@ -30,8 +30,8 @@ class AudioFile:
 		
 		
 
-	def get_new_stream(self) -> Generator:
-		return stream_file(self.file_name, sample_rate=self.info.sample_rate)
+	def get_new_stream(self, seek_to:Optional[int]=0) -> Generator:
+		return stream_file(self.file_name, sample_rate=self.info.sample_rate, seek_frame=seek_to)
 
 	def get_frame_volume(self) -> int:
 		"""Gets the total number of audio frames this audio file has"""

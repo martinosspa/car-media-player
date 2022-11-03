@@ -106,7 +106,11 @@ kv_file = Builder.load_string('''
 				value_track_width: 4
 				value_track: True
 				value_track_color: [1, 0, 0, 1]
-				value_normalized: root.get_progress()
+				min: 0
+				max: 1
+				step: 0.0001
+				value: 0
+				on_touch_up: root.update_progress()
 			
 			BoxLayout:
 
@@ -151,7 +155,7 @@ class CircleButton(Button):
 	_source = StringProperty()
 	scale = AliasProperty(get_scale, None, bind=['height'])
 	def __init__(self, **kwargs) -> None:
-		super(CircleButton, self).__init__(**kwargs)
+		super(CircleButton, self).__init__(**kwargs)s
 
 	def debug(self):
 		print(self.scale)
@@ -163,10 +167,12 @@ class AudioScreen(Widget):
 	def get_progress(self) -> float:
 		return self.audio_handler._current_progress
 
-	audio_progress = AliasProperty(get_progress, None)
+	def update_progress(self) -> None:
+		v = self.ids._progress_slider.value
+		self.audio_handler.seek_to_percentage(v)
+
 
 	def __init__(self, **kwargs) -> None:
-
 		super(AudioScreen, self).__init__(**kwargs)
 		self.audio_handler = AudioHandler()
 		self.audio_handler.load_queue_from_path('audio/')
@@ -177,12 +183,14 @@ class AudioScreen(Widget):
 		
 		self.update_background()
 
+		
+	
 	def update_background(self) -> None:
+		"""Updates the picture in the background"""
 		pil_image, extension = self.audio_handler.get_current_track_image()
 		if not pil_image:
 			t = Texture.create(size=(64, 64), colorfmt='RGBA', bufferfmt='ubyte')
 			s = b'\x00\x00\x00\x80' * 64 * 64
-			print(type(s))
 			t.blit_buffer(s, colorfmt='rgba')
 			self.background_texture = t
 			return
@@ -193,17 +201,20 @@ class AudioScreen(Widget):
 		self.background_texture = im.texture
 
 	def update_slider(self, v):
+		"""Updates the slide with the given argument"""
 		if 0 <= v <= 1:
-			self.ids._progress_slider.value_normalized = v
+			self.ids._progress_slider.value = v
 
 
 	def update_play_button(self) -> None:
+		"""Update the play button's icon"""
 		if self.audio_handler.playing:
 			self.ids.middle_button._source = 'resources/pause.png'
 		else:
 			self.ids.middle_button._source = 'resources/play.png'
 
 	def toggle_play(self) -> None:
+		"""Toggles audio"""
 		if self.audio_handler.playing:
 			self.audio_handler.pause()
 		else:
