@@ -111,6 +111,7 @@ kv_file = Builder.load_string('''
 				step: 0.0001
 				value: 0
 				on_touch_up: root.update_progress()
+				sensitivity: 'handle'
 			
 			BoxLayout:
 
@@ -155,7 +156,7 @@ class CircleButton(Button):
 	_source = StringProperty()
 	scale = AliasProperty(get_scale, None, bind=['height'])
 	def __init__(self, **kwargs) -> None:
-		super(CircleButton, self).__init__(**kwargs)s
+		super(CircleButton, self).__init__(**kwargs)
 
 	def debug(self):
 		print(self.scale)
@@ -164,6 +165,7 @@ class CircleButton(Button):
 class AudioScreen(Widget):
 	audio_handler : AudioHandler
 	background_texture = ObjectProperty()
+	progress = NumericProperty()
 	def get_progress(self) -> float:
 		return self.audio_handler._current_progress
 
