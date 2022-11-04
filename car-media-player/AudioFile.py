@@ -12,13 +12,16 @@ class AudioFile:
 		self.file_name = path
 		tags = ID3(self.file_name)
 		apic = tags.get('APIC:') if tags.get('APIC:') else None
-		pict = apic.data if apic else None
+		
+		#if the mp3 doesn't have an image loads a transparent black image
 		if apic:
-
 			self.image_extension = apic.mime.replace('image/', '')
+			self.image = Image.open(BytesIO(apic.data))
 		else:
-			self.image_extension = None
-		self.image = Image.open(BytesIO(pict)) if pict else None
+			self.image_extension = 'png'
+			self.image = Image.new(mode='RGBA', size=(400,400), color=(10,10,10,127))
+
+
 		self.title = tags.get('TIT2').text[0] if tags.get('TIT2') else None
 		self.album = tags.get('TALB').text[0] if tags.get('TALB') else None
 		self.artist = tags.get('TPE1').text[0] if tags.get('TPE1') else None

@@ -99,20 +99,11 @@ kv_file = Builder.load_string('''
 				Rectangle:
 					size: root.width, self.height
 					pos: root.pos
-			Slider:
-				id: _progress_slider
+			ProgressBar:
+				id: _progress_bar
 				pos_hint: {"x": 0.1, "y": 0}
 				size_hint: 0.8, 0.33
-				value_track_width: 4
-				value_track: True
-				value_track_color: [1, 0, 0, 1]
-				min: 0
 				max: 1
-				step: 0.0001
-				value: 0
-				on_touch_up: root.update_progress()
-				sensitivity: 'handle'
-			
 			BoxLayout:
 
 				pos_hint : {"x": 0.2, "y": 0}
@@ -158,14 +149,12 @@ class CircleButton(Button):
 	def __init__(self, **kwargs) -> None:
 		super(CircleButton, self).__init__(**kwargs)
 
-	def debug(self):
-		print(self.scale)
-
 
 class AudioScreen(Widget):
 	audio_handler : AudioHandler
 	background_texture = ObjectProperty()
 	progress = NumericProperty()
+
 	def get_progress(self) -> float:
 		return self.audio_handler._current_progress
 
@@ -179,41 +168,44 @@ class AudioScreen(Widget):
 		self.audio_handler = AudioHandler()
 		self.audio_handler.load_queue_from_path('audio/')
 		self.audio_handler.set_progress_callback(self.update_slider)
-		self.audio_handler.set_change_callback(self.update_background)
+		self.audio_handler.set_change_callback(self.update) #self.update_background
 		self.audio_handler.load_track()
+		# ^^ loading a track might not be loaded in the thread because it's loaded before it starts
+		# potential problems in the future
 		self.audio_handler.start()
 		
-		self.update_background()
+		self.update()
 
-		
-	
-	def update_background(self) -> None:
+	@mainthread # because this is called as a callback ,@mainthread needs to be here
+	def update(self) -> None:
+		"""Update background and play button state"""
+		self._update_background()
+		self._update_play_button()
+
+	def _update_background(self) -> None:
 		"""Updates the picture in the background"""
 		pil_image, extension = self.audio_handler.get_current_track_image()
-		if not pil_image:
-			t = Texture.create(size=(64, 64), colorfmt='RGBA', bufferfmt='ubyte')
-			s = b'\x00\x00\x00\x80' * 64 * 64
-			t.blit_buffer(s, colorfmt='rgba')
-			self.background_texture = t
-			return
+		# Convert pil image to kivy image
 		data = BytesIO()
 		pil_image.save(data, format=extension)
 		data.seek(0)
 		im = coreImage(BytesIO(data.read()), ext=extension)
 		self.background_texture = im.texture
 
-	def update_slider(self, v):
-		"""Updates the slide with the given argument"""
-		if 0 <= v <= 1:
-			self.ids._progress_slider.value = v
-
-
-	def update_play_button(self) -> None:
+	def _update_play_button(self) -> None:
 		"""Update the play button's icon"""
 		if self.audio_handler.playing:
 			self.ids.middle_button._source = 'resources/pause.png'
 		else:
 			self.ids.middle_button._source = 'resources/play.png'
+
+
+	@mainthread # because this is called as a callback @mainthread needs to be here
+	def update_slider(self, v):
+		"""Updates the slide with the given argument"""
+		if 0 <= v <= 1:
+			self.ids._progress_bar.value = v
+
 
 	def toggle_play(self) -> None:
 		"""Toggles audio"""
@@ -221,19 +213,13 @@ class AudioScreen(Widget):
 			self.audio_handler.pause()
 		else:
 			self.audio_handler.play_or_resume()
-		self.update_play_button()
-			
+		self.update()
 
 	def prev_track(self) -> None:
-		self.audio_handler.go_to_previous_track(callback=self.update_background)
-		self.update_play_button()
+		self.audio_handler.go_to_previous_track(callback=self.update)
 
 	def next_track(self) -> None:
-		self.audio_handler.go_to_next_track(callback=self.update_background)
-		self.update_play_button()
-
-	def debug(self, t) -> None:
-		print(self.x, self.y, self.width, self.height)
+		self.audio_handler.go_to_next_track(callback=self.update)
 
 class SideMenu(Widget):
 	closed_width = 0.1

@@ -35,7 +35,7 @@ class AudioHandler(Thread):
 	def __init__(self):
 		Thread.__init__(self)
 		self.playback_device = PlaybackDevice()
-		self.daemon = True
+		#self.daemon = True
 
 	def start(self) -> None:
 		self.running = True
@@ -53,7 +53,6 @@ class AudioHandler(Thread):
 		self._frame_max = self.current_track.get_frame_volume()
 		self._current_frame = 0
 
-		
 		self.audio_stream = stream_with_callbacks(self.current_track.get_new_stream(seek_to=seek_to),
 												lambda frames: self._progress_audio_callback(frames),
 												lambda: self._set_next_track())
@@ -70,7 +69,7 @@ class AudioHandler(Thread):
 		"""Plays the track at the current_track_position"""
 		self.playback_device.start(self.audio_stream)
 		self.playing = True
-
+		
 	def set_change_callback(self, callback:Callable) -> None:
 		self.change_callback = callback
 		
@@ -112,6 +111,7 @@ class AudioHandler(Thread):
 		self.load_track()
 		if callback:
 			callback()
+
 		self.play_or_resume()
 
 	def go_to_previous_track(self, callback:Optional[Callable] = None) -> None:
@@ -144,11 +144,8 @@ class AudioHandler(Thread):
 		while self.running:
 			if self._queue_next_track:
 				self._queue_next_track = False
-				self.go_to_next_track()
-				if self.change_callback:
-					self.change_callback()
+				self.go_to_next_track(self.change_callback)
 			time.sleep(0.01)
-
 	def __del__(self) -> None:
 		self.close()
 
