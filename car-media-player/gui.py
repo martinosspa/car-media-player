@@ -21,6 +21,8 @@ from kivy.animation import Animation
 from io import BytesIO
 from kivy.clock import mainthread
 from kivy.graphics.texture import Texture
+from kivy.uix.screenmanager import Screen
+
 kv_file = Builder.load_string('''
 #: import ef kivy.uix.effectwidget
 <CircleButton>:
@@ -47,20 +49,37 @@ kv_file = Builder.load_string('''
 		keep_ratio: True
 
 <SideMenu>:
-	Button:
-		size: root.size
-		pos: root.pos
-		background_color: 0, 0, 0, 0
+	BoxLayout:
+		width: root.width*2
+		height: root.height
+		x: root.x
+		columns: 2
 		canvas:
 			Color:
-				rgba: 0.3, 0.3, 0.3, 0.5
-			
+				rgba: 0.1, 0.1, 0.1, 0.5
 			Rectangle:
-				size: root.width, root.height
-				pos: root.pos
-		text: "debug"
-		on_press: root.toggle_screen_size()
-
+				size: self.size
+				pos: self.pos
+			
+		Button:
+			background_color: 0, 0, 0, 0
+			size_hint: 0.4, 1
+			text: "debug"
+			on_press: root.toggle_screen_size()
+		BoxLayout:
+			orientation: 'vertical'
+			pos: root.pos
+			padding: 40, 0, 40, 0
+			Button:
+				text: "test1"
+				on_press: root.change_screen_to('album_screen')
+			Button:
+				text: "test2"
+				on_press: root.change_screen_to('audio_screen')
+				
+<AlbumScreen>:
+	FloatLayout:
+		Button:
 <AudioScreen>:
 	FloatLayout:
 		size: root.size
@@ -127,16 +146,26 @@ kv_file = Builder.load_string('''
 
 		
 <MainScreen>:
+	id: main_screen
 	FloatLayout:
 		size: root.size
-		AudioScreen:
-			id: audio_screen
-			pos_hint: {"top": 1}
-			size_hint: 0.9, 1
+		ScreenManager:
+			id: screen_manager
+			AudioScreen:
+				id: audio_screen
+				name: "audio_screen"
+				pos_hint: {"top": 1}
+			AlbumScreen:
+				id: album_screen
+				name: "album_screen"
+				
 		SideMenu:
-			pos_hint: {"right": 1}
-			size_hint_y: 1
-			size_hint_x: 0.1
+			size_hint: 0.1, 1
+			x: root.width * 0.9
+			x_closed: root.width * 0.9
+			x_opened: root.width * 0.8
+			_screen_manager: screen_manager
+
 ''')
 
 class CircleButton(Button):
@@ -149,8 +178,10 @@ class CircleButton(Button):
 	def __init__(self, **kwargs) -> None:
 		super(CircleButton, self).__init__(**kwargs)
 
+class AlbumScreen(Screen):
+	pass
 
-class AudioScreen(Widget):
+class AudioScreen(Screen):
 	audio_handler : AudioHandler
 	background_texture = ObjectProperty()
 	progress = NumericProperty()
@@ -222,31 +253,41 @@ class AudioScreen(Widget):
 		self.audio_handler.go_to_next_track(callback=self.update)
 
 class SideMenu(Widget):
-	closed_width = 0.1
-	opened_width = 0.3
 	animation_duration = 0.3 # seconds
+	x_opened = 0
+	x_closed = 0
+	_screen_manager = ObjectProperty()
 	def __init__(self, **kwargs) -> None:
 		super(SideMenu, self).__init__(**kwargs)
-		self.size_hint_x = self.closed_width
+		#self.size_hint_x = self.closed_width
+		self.opened = False
 		
 	def toggle_screen_size(self) -> None:
 		"""Toggled the side menu screen size"""
-		if self.size_hint_x == self.closed_width:
-			animation = Animation(size_hint_x=self.opened_width, duration=self.animation_duration, t='in_out_quad')
+		if not self.opened:
+			animation = Animation(x=self.x_opened, duration=self.animation_duration, t='in_out_quad')
 			animation.start(self)
+			self.opened = True
 
-		elif self.size_hint_x == self.opened_width:
-			animation = Animation(size_hint_x=self.closed_width, duration=self.animation_duration, t='in_out_quad')
+		elif self.opened:
+			animation = Animation(x=self.x_closed, duration=self.animation_duration, t='in_out_quad')
 			animation.start(self)
+			self.opened = False
+		print(self.x, self.width)
+
+	def change_screen_to(self, screen_name: str) -> None:
+		self._screen_manager.current = screen_name
+
+
 		
 class MainScreen(Widget):
-	pass
+	screen_manager = ObjectProperty()
 
 class TestApp(App):
 	def build(self):
-		MS = MainScreen()
-		Window.bind(on_request_close=lambda _: MS.ids.audio_screen.audio_handler.close())
-		return MS
+		self.MS = MainScreen()
+		Window.bind(on_request_close=lambda _: self.MS.ids.audio_screen.audio_handler.close())
+		return self.MS
 
 
 if __name__ == '__main__':

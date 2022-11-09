@@ -54,8 +54,8 @@ class AudioHandler(Thread):
 		self._current_frame = 0
 
 		self.audio_stream = stream_with_callbacks(self.current_track.get_new_stream(seek_to=seek_to),
-												lambda frames: self._progress_audio_callback(frames),
-												lambda: self._set_next_track())
+												progress_callback=lambda frames: self._progress_audio_callback(frames),
+												end_callback=lambda: self._set_next_track())
 		next(self.audio_stream)
 
 		#This is used to load correct sample_rate in to Playback Device
@@ -163,6 +163,9 @@ if __name__ == '__main__':
 	AH.load_queue_from_path('audio/')
 	AH.load_track()
 	AH.start()
+	AH.play_or_resume()
+	print(AH.current_track.info)
+
 	print('this is something non blocking')
 	time.sleep(10)
 	print('ended')

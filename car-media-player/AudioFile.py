@@ -30,8 +30,8 @@ class AudioFile:
 		self.info = mp3_get_file_info(self.file_name)
 		self._frame_size = self.info.sample_rate
 		self._total_frame_count = self.info.num_frames
-		
-		
+
+
 
 	def get_new_stream(self, seek_to:Optional[int]=0) -> Generator:
 		return stream_file(self.file_name, sample_rate=self.info.sample_rate, seek_frame=seek_to)
