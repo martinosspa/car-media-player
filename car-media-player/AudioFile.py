@@ -5,12 +5,14 @@ from io import BytesIO
 from PIL import Image
 from copy import deepcopy, copy
 from typing import Generator, Tuple, Optional
+#from AudioAlbum import AudioAlbum
 class AudioFile:
 	"""This class is used to load audio file info and audio streams"""
 
-	def __init__(self, path:str) -> None:
+	def __init__(self, path:str, album=None) -> None:
 		self.file_name = path
 		tags = ID3(self.file_name)
+		# apic is the image in the mp3 tags
 		apic = tags.get('APIC:') if tags.get('APIC:') else None
 		
 		#if the mp3 doesn't have an image loads a transparent black image
@@ -20,12 +22,13 @@ class AudioFile:
 		else:
 			self.image_extension = 'png'
 			self.image = Image.new(mode='RGBA', size=(400,400), color=(10,10,10,127))
-
-
 		self.title = tags.get('TIT2').text[0] if tags.get('TIT2') else None
-		self.album = tags.get('TALB').text[0] if tags.get('TALB') else None
 		self.artist = tags.get('TPE1').text[0] if tags.get('TPE1') else None
-
+		
+		if album:
+			self.album = album
+		else:
+			self.album = None
 		# get frame info for progress callbacks and displaying
 		self.info = mp3_get_file_info(self.file_name)
 		self._frame_size = self.info.sample_rate
