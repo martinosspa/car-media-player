@@ -1,13 +1,10 @@
-from miniaudio import stream_file, mp3_get_file_info, stream_with_callbacks, read_file
-from mutagen.mp3 import MP3
+from miniaudio import stream_file, mp3_get_file_info
 from mutagen.id3 import ID3
 from io import BytesIO
 from PIL import Image
-from copy import deepcopy, copy
 from typing import Generator, Tuple, Optional
-#from AudioAlbum import AudioAlbum
 class AudioFile:
-	"""This class is used to load audio file info and audio streams"""
+	"""This class is used to load audio file info and audio streams."""
 
 	def __init__(self, path:str, album=None) -> None:
 		self.file_name = path

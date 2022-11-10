@@ -7,8 +7,8 @@ from PIL import Image
 from io import BytesIO
 
 class AudioLibrary:
+	"""Class that contains AudioAlbums. Is iterable"""
 	_AUDIO_FILE_EXTENSIONS = ['.mp3']
-	library = []
 	albums = []
 
 	def build(self) -> None:
@@ -49,16 +49,29 @@ class AudioLibrary:
 
 			self.albums[album_index].add_audio_file(audio_file_name)
 
-
 	def get_albums(self) -> List[AudioAlbum]:
 		return self.albums
+
+	def get(self, pos:int) -> AudioAlbum:
+		return self.albums[pos]
+
+	def __iter__(self):
+		self._index = 0
+		return self
+
+	def __next__(self):
+		if self._index < len(self.albums):
+			r = self.albums[self._index]
+			self._index += 1
+			return r
+		else:
+			raise StopIteration
 
 if __name__ == '__main__':
 	# testing
 	AL = AudioLibrary()
 	AL.build()
 	for album in AL.albums:
-		print(f'---{album}---{album.size}')
 		for song in album:
 			print(song)
 	print(AL.albums)

@@ -178,6 +178,9 @@ class CircleButton(Button):
 	def __init__(self, **kwargs) -> None:
 		super(CircleButton, self).__init__(**kwargs)
 
+
+class AlbumButton(Button):
+	pass
 class AlbumScreen(Screen):
 	pass
 
@@ -197,13 +200,16 @@ class AudioScreen(Screen):
 	def __init__(self, **kwargs) -> None:
 		super(AudioScreen, self).__init__(**kwargs)
 		self.audio_handler = AudioHandler()
-		self.audio_handler.load_queue_from_path('audio/')
+		self.audio_handler.start()
+		
+		# temporary
+		print(self.audio_handler.audio_library.albums)
+		self.audio_handler.load_album_to_queue(self.audio_handler.audio_library.get(1))
+		
 		self.audio_handler.set_progress_callback(self.update_slider)
 		self.audio_handler.set_change_callback(self.update) #self.update_background
 		self.audio_handler.load_track()
-		# ^^ loading a track might not be loaded in the thread because it's loaded before it starts
-		# potential problems in the future
-		self.audio_handler.start()
+		
 		
 		self.update()
 

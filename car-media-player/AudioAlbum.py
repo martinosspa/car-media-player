@@ -1,4 +1,3 @@
-#from dataclasses import dataclass
 from PIL.Image import Image
 from typing import Optional, Union
 from AudioFile import AudioFile
@@ -13,15 +12,9 @@ class AudioAlbum:
 		self.size = 0
 		self._audio_files = []
 
-	def get_image_as_kivy_texture(self):
+	def get_image(self) -> Image:
 		"""Get the image of the album as a PIL Image"""
-
-		data = BytesIO()
-		self.image.save(data, format=self.image.format)
-		data.seek(0)
-		im = coreImage(BytesIO(data.read()), ext=self.image.format)
-		#self.background_texture = im.texture
-		return im.texture
+		return self.image
 
 	def add_audio_file(self, path) -> None:
 		"""Adds an audio file given the path of the file"""
