@@ -204,7 +204,10 @@ class AudioScreen(Screen):
 		
 		# temporary
 		print(self.audio_handler.audio_library.albums)
-		self.audio_handler.load_album_to_queue(self.audio_handler.audio_library.get(1))
+		self.audio_handler.load_album_to_queue(self.audio_handler.audio_library.get(0))
+
+		for track in self.audio_handler.audio_library.get(0):
+			print(track)
 		
 		self.audio_handler.set_progress_callback(self.update_slider)
 		self.audio_handler.set_change_callback(self.update) #self.update_background
@@ -279,7 +282,7 @@ class SideMenu(Widget):
 			animation = Animation(x=self.x_closed, duration=self.animation_duration, t='in_out_quad')
 			animation.start(self)
 			self.opened = False
-		print(self.x, self.width)
+		#print(self.x, self.width)
 
 	def change_screen_to(self, screen_name: str) -> None:
 		self._screen_manager.current = screen_name

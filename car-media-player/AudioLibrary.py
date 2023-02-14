@@ -72,6 +72,7 @@ if __name__ == '__main__':
 	AL = AudioLibrary()
 	AL.build()
 	for album in AL.albums:
+		print(f'-- {album} -- ')
 		for song in album:
 			print(song)
 	print(AL.albums)

@@ -39,22 +39,24 @@ class AudioHandler(Thread):
 	def __init__(self):
 		Thread.__init__(self)
 		self.playback_device = PlaybackDevice()
-		#self.daemon = True
 
 	def start(self) -> None:
-		"""Starts the Audio Handler thread and also builds the library"""
+		"""Starts the Audio Handler thread and builds the library"""
 		super().start()
 		self.running = True
 		self.audio_library.build()
 		
+	def change_track_to(self, new_position: int) -> None:
+		"""Changes the track position without loading it"""
+		if 0 <= new_position <= self.current_library_max_length:
+			self._current_track_position = new_position
+		else:
+			print(f'audio library position out of bounds [{0} - {self.current_library_max_length}] -> {new_position}')
+
 
 	def load_track(self, seek_to:Optional[int] = 0) -> None:
 		"""Loads the current track in to memory from _current_track_position
 		   Cant load a track if another one is already playing"""
-		if not 0 <= self._current_track_position <= self.current_library_max_length:
-			raise IndexError(f'audio library position out of bounds [{0} - {self.current_library_max_length}] -> {self._current_track_position}')
-			return
-
 		self.current_track = self.audio_queue[self._current_track_position]
 		self._frame_max = self.current_track.get_frame_volume()
 		self._current_frame = 0
@@ -113,7 +115,7 @@ class AudioHandler(Thread):
 	def go_to_next_track(self, callback:Optional[Callable] = None) -> None:
 		"""Loads and plays next track"""
 		self.pause()
-		self._current_track_position += 1
+		self.change_track_to(self._current_track_position + 1)
 		self.load_track()
 		if callback:
 			callback()
@@ -123,7 +125,8 @@ class AudioHandler(Thread):
 	def go_to_previous_track(self, callback:Optional[Callable] = None) -> None:
 		"""Loads and plays previous track"""
 		self.pause()
-		self._current_track_position -= 1
+		self.change_track_to(self._current_track_position - 1)
+		
 		self.load_track()
 		if callback:
 			callback()
@@ -135,11 +138,10 @@ class AudioHandler(Thread):
 			raise LookupError(f'Album provided ({album}) not in Audio Library')
 		self.audio_queue.extend(album)
 		self.current_library_max_length = len(self.audio_queue) - 1
-
+		
 	def get_current_track_image(self) -> Tuple[PIL.Image.Image, str]:
 		"""Returns current track image as PIL image and it's file extension as a tuple"""
 		return self.audio_queue[self._current_track_position].get_image()
-
 
 
 	def run(self) -> None:
@@ -158,6 +160,8 @@ class AudioHandler(Thread):
 		seek_frame_value = int(value * self._frame_max)
 		self.load_track(seek_to=seek_frame_value)
 		self.play_or_resume()
+
+
 
 
 if __name__ == '__main__':
