@@ -78,8 +78,15 @@ kv_file = Builder.load_string('''
 				on_press: root.change_screen_to('audio_screen')
 				
 <AlbumScreen>:
-	FloatLayout:
-		Button:
+	GridLayout:
+		size_hint_x: 0.9
+		size_hint_y: 1
+		rows: 5
+		cols: 5
+		#row_force_default: True
+		#column_force_default: True
+		id: layout
+
 <AudioScreen>:
 	FloatLayout:
 		size: root.size
@@ -141,9 +148,6 @@ kv_file = Builder.load_string('''
 					_source: "resources/skip-forward.png"
 					on_press: root.next_track()
 
-			
-
-
 		
 <MainScreen>:
 	id: main_screen
@@ -182,7 +186,10 @@ class CircleButton(Button):
 class AlbumButton(Button):
 	pass
 class AlbumScreen(Screen):
-	pass
+	
+	def on_pre_enter(self):
+		for i in range(6):
+			self.ids.layout.add_widget(Button(text=str(i)))
 
 class AudioScreen(Screen):
 	audio_handler : AudioHandler

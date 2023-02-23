@@ -50,9 +50,11 @@ class AudioLibrary:
 			self.albums[album_index].add_audio_file(audio_file_name)
 
 	def get_albums(self) -> List[AudioAlbum]:
+		"""Get all albums"""
 		return self.albums
 
 	def get(self, pos:int) -> AudioAlbum:
+		"""Get an album by position"""
 		return self.albums[pos]
 
 	def __iter__(self):
