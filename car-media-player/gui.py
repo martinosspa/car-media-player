@@ -262,7 +262,6 @@ class SideMenu(Widget):
 			animation = Animation(x=self.x_closed, duration=self.animation_duration, t='in_out_quad')
 			animation.start(self)
 			self.opened = False
-		#print(self.x, self.width)
 
 	def change_screen_to(self, screen_name: str) -> None:
 		self._screen_manager.current = screen_name
@@ -278,6 +277,7 @@ class AudioHandlerScreenManager(ScreenManager):
 
 		self.audio_handler = AudioHandler()
 		self.audio_handler.start()
+
 		# temporary
 		self.audio_handler.load_album_to_queue(self.audio_handler.audio_library.get(0))
 		for track in self.audio_handler.audio_library.get(0):
@@ -307,7 +307,7 @@ class MainScreen(Widget):
 class TestApp(App):
 	def build(self):
 		self.MS = MainScreen()
-		Window.bind(on_request_close=lambda _: self.MS.ids.audio_screen.audio_handler.close())
+		Window.bind(on_request_close=lambda _: self.MS.ids.screen_manager.audio_handler.close())
 		return self.MS
 
 
