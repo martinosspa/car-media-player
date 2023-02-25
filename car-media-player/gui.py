@@ -21,7 +21,7 @@ from kivy.animation import Animation
 from io import BytesIO
 from kivy.clock import mainthread
 from kivy.graphics.texture import Texture
-from kivy.uix.screenmanager import Screen
+from kivy.uix.screenmanager import Screen, ScreenManager
 
 kv_file = Builder.load_string('''
 #: import ef kivy.uix.effectwidget
@@ -78,14 +78,17 @@ kv_file = Builder.load_string('''
 				on_press: root.change_screen_to('audio_screen')
 				
 <AlbumScreen>:
-	GridLayout:
-		size_hint_x: 0.9
+	ScrollView:
+		do_scroll_x: False
+		do_scroll_y: True
+		size_hint_x: 1
 		size_hint_y: 1
-		rows: 5
-		cols: 5
-		#row_force_default: True
-		#column_force_default: True
-		id: layout
+		GridLayout:
+			size_hint_x: 0.9
+			size_hint_y: 1.5
+			rows: 5
+			cols: 5
+			id: layout
 
 <AudioScreen>:
 	FloatLayout:
@@ -153,15 +156,9 @@ kv_file = Builder.load_string('''
 	id: main_screen
 	FloatLayout:
 		size: root.size
-		ScreenManager:
+		AudioHandlerScreenManager
 			id: screen_manager
-			AudioScreen:
-				id: audio_screen
-				name: "audio_screen"
-				pos_hint: {"top": 1}
-			AlbumScreen:
-				id: album_screen
-				name: "album_screen"
+			# Screens are set in code
 				
 		SideMenu:
 			size_hint: 0.1, 1
@@ -187,43 +184,22 @@ class AlbumButton(Button):
 	pass
 class AlbumScreen(Screen):
 	
-	def on_pre_enter(self):
+	def on_pre_enter(self) -> None:
 		for i in range(6):
-			self.ids.layout.add_widget(Button(text=str(i)))
+			self.ids.layout.add_widget(AlbumButton(text=str(i)))
+
+	def update(self) -> None:
+		pass
 
 class AudioScreen(Screen):
 	audio_handler : AudioHandler
 	background_texture = ObjectProperty()
 	progress = NumericProperty()
 
-	def get_progress(self) -> float:
-		return self.audio_handler._current_progress
-
-	def update_progress(self) -> None:
-		v = self.ids._progress_slider.value
-		self.audio_handler.seek_to_percentage(v)
-
 
 	def __init__(self, **kwargs) -> None:
 		super(AudioScreen, self).__init__(**kwargs)
-		self.audio_handler = AudioHandler()
-		self.audio_handler.start()
-		
-		# temporary
-		print(self.audio_handler.audio_library.albums)
-		self.audio_handler.load_album_to_queue(self.audio_handler.audio_library.get(0))
 
-		for track in self.audio_handler.audio_library.get(0):
-			print(track)
-		
-		self.audio_handler.set_progress_callback(self.update_slider)
-		self.audio_handler.set_change_callback(self.update) #self.update_background
-		self.audio_handler.load_track()
-		
-		
-		self.update()
-
-	@mainthread # because this is called as a callback ,@mainthread needs to be here
 	def update(self) -> None:
 		"""Update background and play button state"""
 		self._update_background()
@@ -231,7 +207,7 @@ class AudioScreen(Screen):
 
 	def _update_background(self) -> None:
 		"""Updates the picture in the background"""
-		pil_image, extension = self.audio_handler.get_current_track_image()
+		pil_image, extension = self.manager.audio_handler.get_current_track_image()
 		# Convert pil image to kivy image
 		data = BytesIO()
 		pil_image.save(data, format=extension)
@@ -241,13 +217,12 @@ class AudioScreen(Screen):
 
 	def _update_play_button(self) -> None:
 		"""Update the play button's icon"""
-		if self.audio_handler.playing:
+		if self.manager.audio_handler.playing:
 			self.ids.middle_button._source = 'resources/pause.png'
 		else:
 			self.ids.middle_button._source = 'resources/play.png'
 
 
-	@mainthread # because this is called as a callback @mainthread needs to be here
 	def update_slider(self, v):
 		"""Updates the slide with the given argument"""
 		if 0 <= v <= 1:
@@ -256,17 +231,16 @@ class AudioScreen(Screen):
 
 	def toggle_play(self) -> None:
 		"""Toggles audio"""
-		if self.audio_handler.playing:
-			self.audio_handler.pause()
+		if self.manager.audio_handler.playing:
+			self.manager.audio_handler.pause()
 		else:
-			self.audio_handler.play_or_resume()
+			self.manager.audio_handler.play_or_resume()
 		self.update()
 
 	def prev_track(self) -> None:
-		self.audio_handler.go_to_previous_track(callback=self.update)
-
+		self.manager.go_to_previous_track(callback=self.manager.update)
 	def next_track(self) -> None:
-		self.audio_handler.go_to_next_track(callback=self.update)
+		self.manager.go_to_next_track(callback=self.manager.update)
 
 class SideMenu(Widget):
 	animation_duration = 0.3 # seconds
@@ -275,7 +249,6 @@ class SideMenu(Widget):
 	_screen_manager = ObjectProperty()
 	def __init__(self, **kwargs) -> None:
 		super(SideMenu, self).__init__(**kwargs)
-		#self.size_hint_x = self.closed_width
 		self.opened = False
 		
 	def toggle_screen_size(self) -> None:
@@ -294,7 +267,39 @@ class SideMenu(Widget):
 	def change_screen_to(self, screen_name: str) -> None:
 		self._screen_manager.current = screen_name
 
+class AudioHandlerScreenManager(ScreenManager):
+	audio_handler: AudioHandler
 
+	def __init__(self, **kwargs) -> None:
+		super(AudioHandlerScreenManager, self).__init__(**kwargs)
+
+		self.add_widget(AudioScreen(name='audio_screen'))
+		self.add_widget(AlbumScreen(name='album_screen'))
+
+		self.audio_handler = AudioHandler()
+		self.audio_handler.start()
+		# temporary
+		self.audio_handler.load_album_to_queue(self.audio_handler.audio_library.get(0))
+		for track in self.audio_handler.audio_library.get(0):
+			print(track)
+
+		self.audio_handler.set_progress_callback(self.get_screen('audio_screen').update_slider)
+		self.audio_handler.set_change_callback(self.update)
+		self.audio_handler.load_track()
+
+		self.update()
+	
+
+	@mainthread
+	def update(self) -> None:
+		for screen in self.screens:
+			screen.update()
+
+	def go_to_previous_track(self, callback=None) -> None:
+		self.audio_handler.go_to_previous_track(callback=callback)
+
+	def go_to_next_track(self, callback=None) -> None:
+		self.audio_handler.go_to_next_track(callback=callback)
 		
 class MainScreen(Widget):
 	screen_manager = ObjectProperty()
