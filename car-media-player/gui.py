@@ -188,6 +188,30 @@ class CircleButton(Button):
 class AlbumButton(Button):
 	pass
 
+class SideMenu(Widget):
+	animation_duration = 0.3 # seconds
+	x_opened = 0
+	x_closed = 0
+	_screen_manager = ObjectProperty()
+	def __init__(self, **kwargs) -> None:
+		super().__init__(**kwargs)
+		self.opened = False
+		
+	def toggle_screen_size(self) -> None:
+		"""Toggled the side menu screen size"""
+		if not self.opened:
+			animation = Animation(x=self.x_opened, duration=self.animation_duration, t='in_out_quad')
+			animation.start(self)
+			self.opened = True
+
+		elif self.opened:
+			animation = Animation(x=self.x_closed, duration=self.animation_duration, t='in_out_quad')
+			animation.start(self)
+			self.opened = False
+
+	def change_screen_to(self, screen_name: str) -> None:
+		self._screen_manager.current = screen_name
+
 
 class AlbumScreen(Screen):
 	def __init__(self, **kwargs) -> None:
@@ -252,29 +276,6 @@ class AudioScreen(Screen):
 	def next_track(self) -> None:
 		self.manager.go_to_next_track(callback=self.manager.update)
 
-class SideMenu(Widget):
-	animation_duration = 0.3 # seconds
-	x_opened = 0
-	x_closed = 0
-	_screen_manager = ObjectProperty()
-	def __init__(self, **kwargs) -> None:
-		super(SideMenu, self).__init__(**kwargs)
-		self.opened = False
-		
-	def toggle_screen_size(self) -> None:
-		"""Toggled the side menu screen size"""
-		if not self.opened:
-			animation = Animation(x=self.x_opened, duration=self.animation_duration, t='in_out_quad')
-			animation.start(self)
-			self.opened = True
-
-		elif self.opened:
-			animation = Animation(x=self.x_closed, duration=self.animation_duration, t='in_out_quad')
-			animation.start(self)
-			self.opened = False
-
-	def change_screen_to(self, screen_name: str) -> None:
-		self._screen_manager.current = screen_name
 
 class AudioHandlerScreenManager(ScreenManager):
 	audio_handler: AudioHandler
