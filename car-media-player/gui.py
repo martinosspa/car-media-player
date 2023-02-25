@@ -76,7 +76,10 @@ kv_file = Builder.load_string('''
 			Button:
 				text: "test2"
 				on_press: root.change_screen_to('audio_screen')
-				
+
+<AlbumButton>:
+	size: root.size
+	#height: root.height
 <AlbumScreen>:
 	ScrollView:
 		do_scroll_x: False
@@ -89,6 +92,8 @@ kv_file = Builder.load_string('''
 			rows: 5
 			cols: 5
 			id: layout
+			col_default_width: self.width/5
+			row_default_height: self.height/5
 
 <AudioScreen>:
 	FloatLayout:
@@ -182,23 +187,28 @@ class CircleButton(Button):
 
 class AlbumButton(Button):
 	pass
+
+
 class AlbumScreen(Screen):
-	
+	def __init__(self, **kwargs) -> None:
+		super().__init__(**kwargs)
+		
+
 	def on_pre_enter(self) -> None:
-		for i in range(6):
-			self.ids.layout.add_widget(AlbumButton(text=str(i)))
+		for album in self.manager.audio_handler.audio_library:
+			print(album)
+			self.ids.layout.add_widget(AlbumButton(text=str(album)))
 
 	def update(self) -> None:
 		pass
 
 class AudioScreen(Screen):
-	audio_handler : AudioHandler
 	background_texture = ObjectProperty()
 	progress = NumericProperty()
 
 
 	def __init__(self, **kwargs) -> None:
-		super(AudioScreen, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 	def update(self) -> None:
 		"""Update background and play button state"""
@@ -270,18 +280,18 @@ class AudioHandlerScreenManager(ScreenManager):
 	audio_handler: AudioHandler
 
 	def __init__(self, **kwargs) -> None:
-		super(AudioHandlerScreenManager, self).__init__(**kwargs)
+		super().__init__(**kwargs)
+		
+		self.audio_handler = AudioHandler()
+		self.audio_handler.start()
 
 		self.add_widget(AudioScreen(name='audio_screen'))
 		self.add_widget(AlbumScreen(name='album_screen'))
 
-		self.audio_handler = AudioHandler()
-		self.audio_handler.start()
-
 		# temporary
 		self.audio_handler.load_album_to_queue(self.audio_handler.audio_library.get(0))
-		for track in self.audio_handler.audio_library.get(0):
-			print(track)
+		#for track in self.audio_handler.audio_library.get(0):
+		#	print(track)
 
 		self.audio_handler.set_progress_callback(self.get_screen('audio_screen').update_slider)
 		self.audio_handler.set_change_callback(self.update)
