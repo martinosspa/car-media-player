@@ -185,7 +185,6 @@ kv_file = Builder.load_string('''
 			x_closed: root.width * 0.9
 			x_opened: root.width * 0.8
 			_screen_manager: screen_manager
-			
 
 ''')
 
@@ -210,23 +209,14 @@ class AlbumButton(Button):
 			self.album_texture = album_image_to_kv_texture(*self.album.get_image())
 
 	def on_press(self) -> None:
-
-		# TODO : find a better way than nested parent calling
-		# Bad practive but works
-		self.parent.parent.parent.manager.change_album_to(self.album)
-		self.parent.parent.parent.manager.current = 'audio_screen'
-		#self.parent.parent.parent.parent.parent.parent.ids.screen_manager.current = 'audio_screen'
-		self.parent.parent.parent.parent.parent.parent.ids.side_menu.toggle_screen_size()
-
+		App.get_running_app().change_album_to(self.album)
+		
 class SideMenu(Widget):
 	animation_duration = 0.3 # seconds
 	x_opened = 0
 	x_closed = 0
 	_screen_manager = ObjectProperty()
-
-	def __init__(self, **kwargs) -> None:
-		super().__init__(**kwargs)
-		self.opened = False
+	opened = False
 		
 	def toggle_screen_size(self) -> None:
 		"""Toggled the side menu screen size"""
@@ -245,9 +235,6 @@ class SideMenu(Widget):
 
 
 class AlbumScreen(Screen):
-	def __init__(self, **kwargs) -> None:
-		super().__init__(**kwargs)
-		
 
 	def on_pre_enter(self) -> None:
 		self.ids.layout.clear_widgets()
@@ -260,10 +247,6 @@ class AlbumScreen(Screen):
 class AudioScreen(Screen):
 	background_texture = ObjectProperty()
 	progress = NumericProperty()
-
-
-	def __init__(self, **kwargs) -> None:
-		super().__init__(**kwargs)
 
 	def update(self) -> None:
 		"""Update background and play button state"""
@@ -281,7 +264,6 @@ class AudioScreen(Screen):
 		else:
 			self.ids.middle_button._source = 'resources/play.png'
 
-
 	def update_slider(self, v):
 		"""Updates the slide with the given argument"""
 		if 0 <= v <= 1:
@@ -296,7 +278,6 @@ class AudioScreen(Screen):
 			self.manager.audio_handler.play_or_resume()
 		self.update()
 
-
 	def change_album_to(self, album:AudioAlbum) -> None:
 		self.audio_handler.clear_queue()
 		self.audio_handler.load_album_to_queue(album)
@@ -304,6 +285,7 @@ class AudioScreen(Screen):
 
 	def prev_track(self) -> None:
 		self.manager.go_to_previous_track(callback=self.manager.update)
+
 	def next_track(self) -> None:
 		self.manager.go_to_next_track(callback=self.manager.update)
 
@@ -358,8 +340,18 @@ class MainScreen(Widget):
 class TestApp(App):
 	def build(self):
 		self.MS = MainScreen()
-		Window.bind(on_request_close=lambda _: self.MS.ids.screen_manager.audio_handler.close())
+		Window.bind(on_request_close=self.close_audio_handler)
 		return self.MS
+
+	def change_album_to(self, album) -> None:
+		self.MS.ids.screen_manager.change_album_to(album)
+		self.MS.ids.screen_manager.current = 'audio_screen'
+		self.MS.ids.side_menu.toggle_screen_size()
+
+	def close_audio_handler(self, _) -> None:
+		self.MS.ids.screen_manager.audio_handler.close()
+
+
 
 
 if __name__ == '__main__':
