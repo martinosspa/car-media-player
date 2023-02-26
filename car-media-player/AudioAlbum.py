@@ -5,16 +5,17 @@ from AudioFile import AudioFile
 class AudioAlbum:
 	"""Class that contains songs of the same album. Is iterable"""
 
-	def __init__(self, name:str, artist:str, image:Optional[Union[Image, None]]=None) -> None:
+	def __init__(self, name:str, artist:str, image:Optional[Union[Image, None]]=None, image_extension=None) -> None:
 		self.name = name
 		self.artist = artist
 		self.image = image
+		self.image_extension = image_extension
 		self.size = 0
 		self._audio_files = []
 
-	def get_image(self) -> Image:
+	def get_image(self) -> [Image, str]:
 		"""Get the image of the album as a PIL Image"""
-		return self.image
+		return [self.image, self.image_extension]
 
 	def add_audio_file(self, path) -> None:
 		"""Adds an audio file given the path of the file"""

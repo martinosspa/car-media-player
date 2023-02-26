@@ -24,6 +24,13 @@ from kivy.clock import mainthread
 from kivy.graphics.texture import Texture
 from kivy.uix.screenmanager import Screen, ScreenManager
 
+def album_image_to_kv_texture(pil_image, extension):
+	data = BytesIO()
+	pil_image.save(data, format=extension)
+	data.seek(0)
+	im = coreImage(BytesIO(data.read()), ext=extension)
+	return im.texture
+
 kv_file = Builder.load_string('''
 #: import ef kivy.uix.effectwidget
 <CircleButton>:
@@ -80,7 +87,12 @@ kv_file = Builder.load_string('''
 
 <AlbumButton>:
 	size: root.size
-	#height: root.height
+	Image:
+		pos: root.pos
+		size: root.size
+		texture: root.album_texture
+		allow_stretch: True
+		keep_ratio: True
 <AlbumScreen>:
 	ScrollView:
 		do_scroll_x: False
@@ -188,10 +200,12 @@ class CircleButton(Button):
 
 class AlbumButton(Button):
 	album : AudioAlbum
-
+	album_texture = ObjectProperty()
 	def __init__(self, a:AudioAlbum, **kwargs) -> None:
 		super().__init__(**kwargs)
 		self.album = a
+		if self.album.get_image():
+			self.album_texture = album_image_to_kv_texture(*self.album.get_image())
 
 	def on_press(self) -> None:
 
@@ -230,8 +244,8 @@ class AlbumScreen(Screen):
 		
 
 	def on_pre_enter(self) -> None:
+		self.ids.layout.clear_widgets()
 		for album in self.manager.audio_handler.audio_library:
-			print(album)
 			self.ids.layout.add_widget(AlbumButton(album))
 
 	def update(self) -> None:
@@ -252,14 +266,8 @@ class AudioScreen(Screen):
 
 	def _update_background(self) -> None:
 		"""Updates the picture in the background"""
-		pil_image, extension = self.manager.audio_handler.get_current_track_image()
-		# Convert pil image to kivy image
-		data = BytesIO()
-		pil_image.save(data, format=extension)
-		data.seek(0)
-		im = coreImage(BytesIO(data.read()), ext=extension)
-		self.background_texture = im.texture
-
+		self.background_texture = album_image_to_kv_texture(*self.manager.audio_handler.get_current_track_image())
+	
 	def _update_play_button(self) -> None:
 		"""Update the play button's icon"""
 		if self.manager.audio_handler.playing:

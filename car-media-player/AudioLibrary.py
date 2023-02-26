@@ -38,7 +38,10 @@ class AudioLibrary:
 				image_extension = 'png'
 				image = Image.new(mode='RGBA', size=(400,400), color=(10,10,10,127))
 			
-			new_potential_album = AudioAlbum(name=album_title, artist=album_artist)
+			new_potential_album = AudioAlbum(image=image, 
+											 image_extension=image_extension, 
+										 	 name=album_title, 
+										 	 artist=album_artist)
 
 			# check if the album in the current iterating audio file exists
 			if new_potential_album in self.albums:
@@ -75,6 +78,7 @@ if __name__ == '__main__':
 	AL.build()
 	for album in AL.albums:
 		print(f'-- {album} -- ')
-		for song in album:
-			print(song)
+		print(album.image)
+		#for song in album:
+		#	print(song)
 	print(AL.albums)
