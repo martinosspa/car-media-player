@@ -151,7 +151,6 @@ class AudioHandler(Thread):
 		self.audio_queue = []
 		self.current_library_max_length = 0
 		self._current_track_position = 0
-		print('cleared queue')
 
 
 	def run(self) -> None:

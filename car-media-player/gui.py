@@ -179,11 +179,13 @@ kv_file = Builder.load_string('''
 			# Screens are set in code
 				
 		SideMenu:
+			id: side_menu
 			size_hint: 0.1, 1
 			x: root.width * 0.9
 			x_closed: root.width * 0.9
 			x_opened: root.width * 0.8
 			_screen_manager: screen_manager
+			
 
 ''')
 
@@ -212,12 +214,16 @@ class AlbumButton(Button):
 		# TODO : find a better way than nested parent calling
 		# Bad practive but works
 		self.parent.parent.parent.manager.change_album_to(self.album)
+		self.parent.parent.parent.manager.current = 'audio_screen'
+		#self.parent.parent.parent.parent.parent.parent.ids.screen_manager.current = 'audio_screen'
+		self.parent.parent.parent.parent.parent.parent.ids.side_menu.toggle_screen_size()
 
 class SideMenu(Widget):
 	animation_duration = 0.3 # seconds
 	x_opened = 0
 	x_closed = 0
 	_screen_manager = ObjectProperty()
+
 	def __init__(self, **kwargs) -> None:
 		super().__init__(**kwargs)
 		self.opened = False
@@ -304,6 +310,7 @@ class AudioScreen(Screen):
 
 class AudioHandlerScreenManager(ScreenManager):
 	audio_handler: AudioHandler
+	_side_menu = ObjectProperty()
 
 	def __init__(self, **kwargs) -> None:
 		super().__init__(**kwargs)
