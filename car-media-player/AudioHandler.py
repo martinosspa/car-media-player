@@ -138,10 +138,20 @@ class AudioHandler(Thread):
 			raise LookupError(f'Album provided ({album}) not in Audio Library')
 		self.audio_queue.extend(album)
 		self.current_library_max_length = len(self.audio_queue) - 1
+		self.load_track()
 		
 	def get_current_track_image(self) -> Tuple[PIL.Image.Image, str]:
 		"""Returns current track image as PIL image and it's file extension as a tuple"""
 		return self.audio_queue[self._current_track_position].get_image()
+
+	def clear_queue(self) -> None:
+		"""Clears audio queue and pauses"""
+		self.pause()
+		self.audio_stream = None
+		self.audio_queue = []
+		self.current_library_max_length = 0
+		self._current_track_position = 0
+		print('cleared queue')
 
 
 	def run(self) -> None:

@@ -17,6 +17,7 @@ from kivy.properties import (ObjectProperty,
 from kivy.uix.image import Image as uixImage
 from kivy.core.image import Image as coreImage
 from AudioHandler import AudioHandler
+from AudioAlbum import AudioAlbum
 from kivy.animation import Animation
 from io import BytesIO
 from kivy.clock import mainthread
@@ -182,11 +183,21 @@ class CircleButton(Button):
 	_source = StringProperty()
 	scale = AliasProperty(get_scale, None, bind=['height'])
 	def __init__(self, **kwargs) -> None:
-		super(CircleButton, self).__init__(**kwargs)
+		super().__init__(**kwargs)
 
 
 class AlbumButton(Button):
-	pass
+	album : AudioAlbum
+
+	def __init__(self, a:AudioAlbum, **kwargs) -> None:
+		super().__init__(**kwargs)
+		self.album = a
+
+	def on_press(self) -> None:
+
+		# TODO : find a better way than nested parent calling
+		# Bad practive but works
+		self.parent.parent.parent.manager.change_album_to(self.album)
 
 class SideMenu(Widget):
 	animation_duration = 0.3 # seconds
@@ -221,7 +232,7 @@ class AlbumScreen(Screen):
 	def on_pre_enter(self) -> None:
 		for album in self.manager.audio_handler.audio_library:
 			print(album)
-			self.ids.layout.add_widget(AlbumButton(text=str(album)))
+			self.ids.layout.add_widget(AlbumButton(album))
 
 	def update(self) -> None:
 		pass
@@ -271,6 +282,12 @@ class AudioScreen(Screen):
 			self.manager.audio_handler.play_or_resume()
 		self.update()
 
+
+	def change_album_to(self, album:AudioAlbum) -> None:
+		self.audio_handler.clear_queue()
+		self.audio_handler.load_album_to_queue(album)
+		self.audio_handler.change_track_to(0)
+
 	def prev_track(self) -> None:
 		self.manager.go_to_previous_track(callback=self.manager.update)
 	def next_track(self) -> None:
@@ -296,10 +313,18 @@ class AudioHandlerScreenManager(ScreenManager):
 
 		self.audio_handler.set_progress_callback(self.get_screen('audio_screen').update_slider)
 		self.audio_handler.set_change_callback(self.update)
-		self.audio_handler.load_track()
+		
+		
 
 		self.update()
 	
+
+	def change_album_to(self, album_name: str) -> None:
+		self.audio_handler.clear_queue()
+		self.audio_handler.load_album_to_queue(album_name)
+		self.update()
+		
+
 
 	@mainthread
 	def update(self) -> None:
