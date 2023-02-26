@@ -1,4 +1,3 @@
-
 from kivy.core.window import Window
 from kivy.uix.scatter import Scatter
 from kivy.graphics.svg import Svg
@@ -22,7 +21,7 @@ from kivy.animation import Animation
 from io import BytesIO
 from kivy.clock import mainthread
 from kivy.graphics.texture import Texture
-from kivy.uix.screenmanager import Screen, ScreenManager
+from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
 
 def album_image_to_kv_texture(pil_image, extension):
 	data = BytesIO()
@@ -195,9 +194,6 @@ class CircleButton(Button):
 
 	_source = StringProperty()
 	scale = AliasProperty(get_scale, None, bind=['height'])
-	def __init__(self, **kwargs) -> None:
-		super().__init__(**kwargs)
-
 
 class AlbumButton(Button):
 	album : AudioAlbum
@@ -235,7 +231,6 @@ class SideMenu(Widget):
 
 
 class AlbumScreen(Screen):
-
 	def on_pre_enter(self) -> None:
 		self.ids.layout.clear_widgets()
 		for album in self.manager.audio_handler.audio_library:
@@ -295,7 +290,7 @@ class AudioHandlerScreenManager(ScreenManager):
 	_side_menu = ObjectProperty()
 
 	def __init__(self, **kwargs) -> None:
-		super().__init__(**kwargs)
+		super().__init__(transition=FadeTransition(), **kwargs)
 		
 		self.audio_handler = AudioHandler()
 		self.audio_handler.start()
@@ -305,8 +300,6 @@ class AudioHandlerScreenManager(ScreenManager):
 
 		# temporary
 		self.audio_handler.load_album_to_queue(self.audio_handler.audio_library.get(0))
-		#for track in self.audio_handler.audio_library.get(0):
-		#	print(track)
 
 		self.audio_handler.set_progress_callback(self.get_screen('audio_screen').update_slider)
 		self.audio_handler.set_change_callback(self.update)
@@ -347,6 +340,7 @@ class TestApp(App):
 		self.MS.ids.screen_manager.change_album_to(album)
 		self.MS.ids.screen_manager.current = 'audio_screen'
 		self.MS.ids.side_menu.toggle_screen_size()
+		self.MS.ids.screen_manager.get_screen('audio_screen').ids._progress_bar.value = 0
 
 	def close_audio_handler(self, _) -> None:
 		self.MS.ids.screen_manager.audio_handler.close()
