@@ -85,13 +85,14 @@ kv_file = Builder.load_string('''
 				on_press: root.change_screen_to('audio_screen')
 
 <AlbumButton>:
-	size: root.size
+	background_color: 0, 0, 0, 0
 	Image:
 		pos: root.pos
 		size: root.size
 		texture: root.album_texture
 		allow_stretch: True
 		keep_ratio: True
+
 <AlbumScreen>:
 	ScrollView:
 		do_scroll_x: False
@@ -105,7 +106,9 @@ kv_file = Builder.load_string('''
 			cols: 5
 			id: layout
 			col_default_width: self.width/5
-			row_default_height: self.height/5
+			row_default_height: self.height/6
+			row_force_default: True
+			spacing: 4, 1
 
 <AudioScreen>:
 	FloatLayout:
