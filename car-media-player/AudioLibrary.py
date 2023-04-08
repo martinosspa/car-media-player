@@ -71,14 +71,3 @@ class AudioLibrary:
 			return r
 		else:
 			raise StopIteration
-
-if __name__ == '__main__':
-	# testing
-	AL = AudioLibrary()
-	AL.build()
-	for album in AL.albums:
-		print(f'-- {album} -- ')
-		print(album.image)
-		#for song in album:
-		#	print(song)
-	print(AL.albums)

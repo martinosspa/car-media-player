@@ -169,21 +169,3 @@ class AudioHandler(Thread):
 		seek_frame_value = int(value * self._frame_max)
 		self.load_track(seek_to=seek_frame_value)
 		self.play_or_resume()
-
-
-
-
-if __name__ == '__main__':
-	# this is for testing purposes
-
-	AH = AudioHandler()
-	AH.load_queue_from_path('audio/')
-	AH.load_track()
-	AH.start()
-	AH.play_or_resume()
-	print(AH.current_track.info)
-
-	print('this is something non blocking')
-	time.sleep(10)
-	print('ended')
-	AH.close()

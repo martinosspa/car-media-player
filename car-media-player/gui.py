@@ -32,6 +32,18 @@ def album_image_to_kv_texture(pil_image, extension):
 
 kv_file = Builder.load_string('''
 #: import ef kivy.uix.effectwidget
+<OpaqueImageButton>:
+	background_color: 0, 0, 0, 0
+	#width: root.width
+	#height: root.height
+	Image:
+		size: root.size
+		#color: 1, 1, 1, 1
+		pos: root.pos
+		source: root._source
+		allow_stretch: True
+		keep_ratio: True
+
 <CircleButton>:
 	background_color: 0, 0, 0, 0
 	width: root.height
@@ -71,17 +83,28 @@ kv_file = Builder.load_string('''
 		Button:
 			background_color: 0, 0, 0, 0
 			size_hint: 0.4, 1
-			text: "debug"
+			#text: "debug"
 			on_press: root.toggle_screen_size()
 		BoxLayout:
 			orientation: 'vertical'
 			pos: root.pos
-			padding: 40, 0, 40, 0
+			padding: 40, 40, 40, 40
+			spacing: 40
+
+			OpaqueImageButton:
+				_source: "resources/music_folder.png"
+				on_press: root.change_screen_to('album_screen')
+			# Button:
+			# 	#text: "test1"
+			# 	on_press: 
+			# 	Image:
+			# 		#size: self.size
+			# 		#pos: self.pos
+			#
+			#		source: "resources/music_folder.png"
+			#		keep_ratio: True
 			Button:
 				text: "test1"
-				on_press: root.change_screen_to('album_screen')
-			Button:
-				text: "test2"
 				on_press: root.change_screen_to('audio_screen')
 
 <AlbumButton>:
@@ -189,9 +212,10 @@ kv_file = Builder.load_string('''
 			_screen_manager: screen_manager
 
 ''')
+class OpaqueImageButton(Button):
+	_source = StringProperty()
 
 class CircleButton(Button):
-	
 	def get_scale(self) -> NumericProperty:
 		return self.height/64
 
@@ -230,6 +254,7 @@ class SideMenu(Widget):
 			self.opened = False
 
 	def change_screen_to(self, screen_name: str) -> None:
+		print('change screen received')
 		self._screen_manager.current = screen_name
 
 
