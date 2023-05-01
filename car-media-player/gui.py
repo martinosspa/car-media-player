@@ -91,9 +91,7 @@ kv_file = Builder.load_string('''
 			padding: 40, 40, 40, 40
 			spacing: 40
 
-			OpaqueImageButton:
-				_source: "resources/music_folder.png"
-				on_press: root.change_screen_to('album_screen')
+
 			# Button:
 			# 	#text: "test1"
 			# 	on_press: 
@@ -103,9 +101,12 @@ kv_file = Builder.load_string('''
 			#
 			#		source: "resources/music_folder.png"
 			#		keep_ratio: True
-			Button:
-				text: "test1"
+			OpaqueImageButton:
+				_source: "resources/home.png"
 				on_press: root.change_screen_to('audio_screen')
+			OpaqueImageButton:
+				_source: "resources/music_folder.png"
+				on_press: root.change_screen_to('album_screen')
 
 <AlbumButton>:
 	background_color: 0, 0, 0, 0
