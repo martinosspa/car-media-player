@@ -134,6 +134,8 @@ class AudioHandler(Thread):
 
 	def load_album_to_queue(self, album:AudioAlbum) -> None:
 		"""Loads a certain AudioAlbum from the audio library in to the queue"""
+		if not album:
+			return
 		if album not in self.audio_library:
 			raise LookupError(f'Album provided ({album}) not in Audio Library')
 		self.audio_queue.extend(album)
@@ -142,6 +144,8 @@ class AudioHandler(Thread):
 		
 	def get_current_track_image(self) -> Tuple[PIL.Image.Image, str]:
 		"""Returns current track image as PIL image and it's file extension as a tuple"""
+		if not self.audio_queue:
+			return []
 		return self.audio_queue[self._current_track_position].get_image()
 
 	def clear_queue(self) -> None:

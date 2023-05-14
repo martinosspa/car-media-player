@@ -58,6 +58,8 @@ class AudioLibrary:
 
 	def get(self, pos:int) -> AudioAlbum:
 		"""Get an album by position"""
+		if len(self.albums) < 1:
+			return None
 		return self.albums[pos]
 
 	def __iter__(self):

@@ -23,7 +23,9 @@ from kivy.clock import mainthread
 from kivy.graphics.texture import Texture
 from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
 
-def album_image_to_kv_texture(pil_image, extension):
+def album_image_to_kv_texture(pil_image=None, extension=None):
+	if not pil_image or not extension:
+		return None
 	data = BytesIO()
 	pil_image.save(data, format=extension)
 	data.seek(0)
