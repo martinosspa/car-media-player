@@ -46,11 +46,11 @@ class AudioHandler(Thread):
 		self.running = True
 		self.audio_library.build()
 
-	def _check_track_position_valid(self, position: int) -> bool:
+	def _check_track_position_valid(self, new_position: int) -> bool:
 		"""Check if a new given track position is valid"""
 		if self.current_library_max_length > 0 and 0 <= new_position <= self.current_library_max_length:
-			print(f'audio library position out of bounds [{0} - {self.current_library_max_length}] -> {new_position}')
 			return True
+		print(f'audio library position out of bounds [{0} - {self.current_library_max_length}] -> {new_position}')
 		return False
 		
 	def change_track_to(self, new_position: int) -> None:
