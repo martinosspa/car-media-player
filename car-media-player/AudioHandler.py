@@ -45,14 +45,17 @@ class AudioHandler(Thread):
 		super().start()
 		self.running = True
 		self.audio_library.build()
+
+	def _check_track_position_valid(self, position: int) -> bool:
+		"""Check if a new given track position is valid"""
+		if self.current_library_max_length > 0 and 0 <= new_position <= self.current_library_max_length:
+			print(f'audio library position out of bounds [{0} - {self.current_library_max_length}] -> {new_position}')
+			return True
+		return False
 		
 	def change_track_to(self, new_position: int) -> None:
 		"""Changes the track position without loading it"""
-		if 0 <= new_position <= self.current_library_max_length:
-			self._current_track_position = new_position
-		else:
-			print(f'audio library position out of bounds [{0} - {self.current_library_max_length}] -> {new_position}')
-
+		self._current_track_position = new_position
 
 	def load_track(self, seek_to:Optional[int] = 0) -> None:
 		"""Loads the current track in to memory from _current_track_position
@@ -75,6 +78,8 @@ class AudioHandler(Thread):
 
 	def play_or_resume(self) -> None:
 		"""Plays the track at the _current_track_position"""
+		if not self.audio_stream:
+			return
 		self.playback_device.start(self.audio_stream)
 		self.playing = True
 		
@@ -84,7 +89,6 @@ class AudioHandler(Thread):
 	def set_progress_callback(self, callback:Callable) -> None:
 		"""This callback is called when a frame of audio is played. It must take 1 arg"""
 		self.progress_callback = callback
-
 
 	def _set_next_track(self) -> None:
 		self._queue_next_track = True
@@ -114,8 +118,11 @@ class AudioHandler(Thread):
 		
 	def go_to_next_track(self, callback:Optional[Callable] = None) -> None:
 		"""Loads and plays next track"""
+		new_track_position = self._current_track_position + 1
+		if not self._check_track_position_valid(new_track_position):
+			return
 		self.pause()
-		self.change_track_to(self._current_track_position + 1)
+		self.change_track_to(new_track_position)
 		self.load_track()
 		if callback:
 			callback()
@@ -124,9 +131,11 @@ class AudioHandler(Thread):
 
 	def go_to_previous_track(self, callback:Optional[Callable] = None) -> None:
 		"""Loads and plays previous track"""
+		new_track_position = self._current_track_position - 1
+		if not self._check_track_position_valid(new_track_position):
+			return
 		self.pause()
-		self.change_track_to(self._current_track_position - 1)
-		
+		self.change_track_to(new_track_position)
 		self.load_track()
 		if callback:
 			callback()
