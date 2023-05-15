@@ -109,7 +109,10 @@ kv_file = Builder.load_string('''
 			OpaqueImageButton:
 				_source: "resources/music_folder.png"
 				on_press: root.change_screen_to('album_screen')
-
+			OpaqueImageButton:
+				_source: "resources/equalizer.png"
+				on_press: root.change_screen_to('equalizer_screen')
+		
 <AlbumButton>:
 	background_color: 0, 0, 0, 0
 	Image:
@@ -118,6 +121,8 @@ kv_file = Builder.load_string('''
 		texture: root.album_texture
 		allow_stretch: True
 		keep_ratio: True
+
+<EqualizerScreen>:
 
 <AlbumScreen>:
 	ScrollView:
@@ -260,6 +265,9 @@ class SideMenu(Widget):
 		print('change screen received')
 		self._screen_manager.current = screen_name
 
+class EqualizerScreen(Screen):
+	def update(self) -> None:
+		pass
 
 class AlbumScreen(Screen):
 	def on_pre_enter(self) -> None:
@@ -328,6 +336,7 @@ class AudioHandlerScreenManager(ScreenManager):
 
 		self.add_widget(AudioScreen(name='audio_screen'))
 		self.add_widget(AlbumScreen(name='album_screen'))
+		self.add_widget(EqualizerScreen(name='equalizer_screen'))
 
 		# temporary
 		self.audio_handler.load_album_to_queue(self.audio_handler.audio_library.get(0))
