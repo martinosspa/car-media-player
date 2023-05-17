@@ -14,6 +14,7 @@ from kivy.properties import (ObjectProperty,
 							BooleanProperty,
 							AliasProperty)
 from kivy.uix.image import Image as uixImage
+from kivy.uix.slider import Slider
 from kivy.core.image import Image as coreImage
 from AudioHandler import AudioHandler
 from AudioAlbum import AudioAlbum
@@ -123,6 +124,12 @@ kv_file = Builder.load_string('''
 		keep_ratio: True
 
 <EqualizerScreen>:
+	BoxLayout:
+		id: layout
+		orientation: 'horizontal'
+		size_hint_x: 0.9
+
+
 
 <AlbumScreen>:
 	ScrollView:
@@ -236,8 +243,8 @@ class AlbumButton(Button):
 	def __init__(self, a:AudioAlbum, **kwargs) -> None:
 		super().__init__(**kwargs)
 		self.album = a
-		if self.album.get_image():
-			self.album_texture = album_image_to_kv_texture(*self.album.get_image())
+		if image := self.album.get_image():
+			self.album_texture = album_image_to_kv_texture(*image)
 
 	def on_press(self) -> None:
 		App.get_running_app().change_album_to(self.album)
@@ -261,11 +268,23 @@ class SideMenu(Widget):
 			animation.start(self)
 			self.opened = False
 
+	def set_opened_to(self, state:bool) -> None:
+		"""Sets opened to a certain state"""
+		if not (self.opened == state):
+			self.toggle_screen_size()
+
 	def change_screen_to(self, screen_name: str) -> None:
 		print('change screen received')
 		self._screen_manager.current = screen_name
 
 class EqualizerScreen(Screen):
+	def __init__(self, **kwargs) -> None:
+		super().__init__(**kwargs)
+		for _ in range(10):
+			self.ids.layout.add_widget(Slider(min=-10, max=10, step=1, orientation='vertical'))
+		#self.ids.layout.clear_widgets()
+		#self.ids.layout.add_widget(Slider)
+	
 	def update(self) -> None:
 		pass
 
@@ -379,7 +398,7 @@ class TestApp(App):
 	def change_album_to(self, album) -> None:
 		self.MS.ids.screen_manager.change_album_to(album)
 		self.MS.ids.screen_manager.current = 'audio_screen'
-		self.MS.ids.side_menu.toggle_screen_size()
+		self.MS.ids.side_menu.set_opened_to(False)
 		self.MS.ids.screen_manager.get_screen('audio_screen').ids._progress_bar.value = 0
 
 	def close_audio_handler(self, _) -> None:
