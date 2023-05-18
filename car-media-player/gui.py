@@ -30,9 +30,8 @@ MAIN_SCREEN_KV = '''
 
 '''
 
-
-
 class AudioHandlerScreenManager(ScreenManager):
+	"""Screen manager & thread hadling for front-end side"""
 	audio_handler: AudioHandler
 	_side_menu = ObjectProperty()
 
@@ -88,8 +87,8 @@ class TestApp(App):
 		self.main_screen.ids.screen_manager.change_album_to(album)
 		self.main_screen.ids.screen_manager.current = 'audio_screen'
 		self.main_screen.ids.side_menu.set_opened_to(False)
-		self.main_screen.ids.screen_manager.get_screen('audio_screen').ids._progress_bar.value = 0
-
+		self.main_screen.ids.screen_manager.get_screen('audio_screen').update_slider(0)
+		
 	def close_audio_handler(self, _) -> None:
 		self.main_screen.ids.screen_manager.audio_handler.close()
 
