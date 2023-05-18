@@ -1,10 +1,37 @@
 from kivy.lang import Builder
 from kivy.uix.screenmanager import Screen
+from kivy.uix.button import Button
 from kivy.properties import (ObjectProperty,
-							NumericProperty)
+							NumericProperty,
+							StringProperty,
+							AliasProperty)
 from AudioHandler import AudioHandler
 from AudioAlbum import AudioAlbum
 from kivy.app import App
+CIRCLE_BUTTON_KV = '''
+<CircleButton>:
+	background_color: 0, 0, 0, 0
+	width: root.height
+	canvas:
+		PushMatrix:
+		Color:
+			rgba: [0.3, 0.3, 0.3, 0.5] if root.state == "normal" else [1, 0.3, 0.3, 0.5]
+		Translate:
+			x: root.x + root.width/2 - self.height/2
+			y: root.y
+		Ellipse:
+			size: [root.height, root.height]
+			pos: 0, 0
+		PopMatrix:
+	Image:
+		size: root.size
+		x: root.x 
+		y: root.y 
+		source: root._source
+		color: [0.5, 0.5, 0.5, 0.5] if root.state == "normal" else [1, 0.3, 0.3, 0.5]
+		allow_stretch: True
+		keep_ratio: True
+'''
 
 AUDIO_SCREEN_KV = '''
 #: import ef kivy.uix.effectwidget
@@ -69,6 +96,19 @@ AUDIO_SCREEN_KV = '''
 					_source: "resources/skip-forward.png"
 					on_press: root.next_track()
 '''
+class CircleButton(Button):
+	_source = StringProperty()
+	
+
+	def __init__(self, **kwargs) -> None:
+		self.scale = AliasProperty(self.get_scale, None, bind=['height'])
+		Builder.load_string(CIRCLE_BUTTON_KV)
+		super().__init__(**kwargs)
+
+	def get_scale(self) -> NumericProperty:
+		return self.height/64
+
+
 
 class AudioScreen(Screen):
 	background_texture = ObjectProperty()

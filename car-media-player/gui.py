@@ -1,8 +1,6 @@
 from kivy.app import App
 from kivy.core.window import Window
-from kivy.uix.button import Button
 from kivy.uix.widget import Widget
-from kivy.uix.anchorlayout import AnchorLayout
 from kivy.lang import Builder
 from kivy.properties import (ObjectProperty, 
 							StringProperty, 
@@ -10,103 +8,18 @@ from kivy.properties import (ObjectProperty,
 							BoundedNumericProperty, 
 							BooleanProperty,
 							AliasProperty)
-from kivy.uix.image import Image as uixImage
 from kivy.uix.slider import Slider
+from kivy.clock import mainthread
+from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
 
 from AudioHandler import AudioHandler
 from AudioAlbum import AudioAlbum
-from kivy.animation import Animation
 
-from kivy.clock import mainthread
-from kivy.graphics.texture import Texture
-from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
-
-from uiAudioScreen import AudioScreen
+from uiAudioScreen import AudioScreen, CircleButton
 from uiAlbums import AlbumScreen, AlbumButton
-
+from uiSidemenu import SideMenu, OpaqueImageButton
 
 kv_file = Builder.load_string('''
-<OpaqueImageButton>:
-	background_color: 0, 0, 0, 0
-	#width: root.width
-	#height: root.height
-	Image:
-		size: root.size
-		#color: 1, 1, 1, 1
-		pos: root.pos
-		source: root._source
-		allow_stretch: True
-		keep_ratio: True
-
-<CircleButton>:
-	background_color: 0, 0, 0, 0
-	width: root.height
-	canvas:
-		PushMatrix:
-		Color:
-			rgba: [0.3, 0.3, 0.3, 0.5] if root.state == "normal" else [1, 0.3, 0.3, 0.5]
-		Translate:
-			x: root.x + root.width/2 - self.height/2
-			y: root.y
-		Ellipse:
-			size: [root.height, root.height]
-			pos: 0, 0
-		PopMatrix:
-	Image:
-		size: root.size
-		x: root.x 
-		y: root.y 
-		source: root._source
-		color: [0.5, 0.5, 0.5, 0.5] if root.state == "normal" else [1, 0.3, 0.3, 0.5]
-		allow_stretch: True
-		keep_ratio: True
-
-<SideMenu>:
-	BoxLayout:
-		width: root.width*2
-		height: root.height
-		x: root.x
-		columns: 2
-		canvas:
-			Color:
-				rgba: 0.1, 0.1, 0.1, 0.5
-			Rectangle:
-				size: self.size
-				pos: self.pos
-			
-		Button:
-			background_color: 0, 0, 0, 0
-			size_hint: 0.4, 1
-			#text: "debug"
-			on_press: root.toggle_screen_size()
-		BoxLayout:
-			orientation: 'vertical'
-			pos: root.pos
-			padding: 40, 40, 40, 40
-			spacing: 40
-
-
-			# Button:
-			# 	#text: "test1"
-			# 	on_press: 
-			# 	Image:
-			# 		#size: self.size
-			# 		#pos: self.pos
-			#
-			#		source: "resources/music_folder.png"
-			#		keep_ratio: True
-			OpaqueImageButton:
-				_source: "resources/home.png"
-				on_press: root.change_screen_to('audio_screen')
-			OpaqueImageButton:
-				_source: "resources/music_folder.png"
-				on_press: root.change_screen_to('album_screen')
-			OpaqueImageButton:
-				_source: "resources/equalizer.png"
-				on_press: root.change_screen_to('equalizer_screen')
-		
-
-
 <EqualizerScreen>:
 	BoxLayout:
 		canvas:
@@ -136,44 +49,6 @@ kv_file = Builder.load_string('''
 			_screen_manager: screen_manager
 
 ''')
-class OpaqueImageButton(Button):
-	_source = StringProperty()
-
-class CircleButton(Button):
-	def get_scale(self) -> NumericProperty:
-		return self.height/64
-
-	_source = StringProperty()
-	scale = AliasProperty(get_scale, None, bind=['height'])
-
-	
-class SideMenu(Widget):
-	animation_duration = 0.3 # seconds
-	x_opened = 0
-	x_closed = 0
-	_screen_manager = ObjectProperty()
-	opened = False
-		
-	def toggle_screen_size(self) -> None:
-		"""Toggled the side menu screen size"""
-		if not self.opened:
-			animation = Animation(x=self.x_opened, duration=self.animation_duration, t='in_out_quad')
-			animation.start(self)
-			self.opened = True
-
-		elif self.opened:
-			animation = Animation(x=self.x_closed, duration=self.animation_duration, t='in_out_quad')
-			animation.start(self)
-			self.opened = False
-
-	def set_opened_to(self, state:bool) -> None:
-		"""Sets opened to a certain state"""
-		if not (self.opened == state):
-			self.toggle_screen_size()
-
-	def change_screen_to(self, screen_name: str) -> None:
-		print('change screen received')
-		self._screen_manager.current = screen_name
 
 class EqualizerScreen(Screen):
 	def __init__(self, **kwargs) -> None:
@@ -183,10 +58,6 @@ class EqualizerScreen(Screen):
 	
 	def update(self) -> None:
 		pass
-
-
-
-
 
 
 class AudioHandlerScreenManager(ScreenManager):
@@ -208,8 +79,6 @@ class AudioHandlerScreenManager(ScreenManager):
 
 		self.audio_handler.set_progress_callback(self.get_screen('audio_screen').update_slider)
 		self.audio_handler.set_change_callback(self.update)
-		
-		
 
 		self.update()
 	
@@ -218,8 +87,6 @@ class AudioHandlerScreenManager(ScreenManager):
 		self.audio_handler.clear_queue()
 		self.audio_handler.load_album_to_queue(album_name)
 		self.update()
-		
-
 
 	@mainthread
 	def update(self) -> None:
