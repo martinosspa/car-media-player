@@ -1,6 +1,8 @@
 from PIL.Image import Image
 from typing import Optional, Union
 from AudioFile import AudioFile
+from io import BytesIO
+from kivy.core.image import Image as kvImage
 
 class AudioAlbum:
 	"""Class that contains songs of the same album. Is iterable"""
@@ -13,9 +15,21 @@ class AudioAlbum:
 		self.size = 0
 		self._audio_files = []
 
+		# Load the image as a kv object as well to not load 
+		# it every time during run time
+		if self.image and self.image_extension:
+			data = BytesIO()
+			self.image.save(data, format=self.image_extension)
+			data.seek(0)
+			im = kvImage(BytesIO(data.read()), ext=self.image_extension)
+			self.kv_image = im.texture
+
 	def get_image(self) -> [Image, str]:
 		"""Get the image of the album as a PIL Image"""
 		return [self.image, self.image_extension]
+	def get_image_kv(self) -> kvImage:
+		"""Returns the KV image"""
+		return self.kv_image
 
 	def add_audio_file(self, path) -> None:
 		"""Adds an audio file given the path of the file"""

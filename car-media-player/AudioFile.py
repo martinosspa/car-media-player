@@ -3,6 +3,8 @@ from mutagen.id3 import ID3
 from io import BytesIO
 from PIL import Image
 from typing import Generator, Tuple, Optional
+from kivy.core.image import Image as kvImage
+
 class AudioFile:
 	"""This class is used to load audio file info and audio streams."""
 
@@ -31,6 +33,15 @@ class AudioFile:
 		self._frame_size = self.info.sample_rate
 		self._total_frame_count = self.info.num_frames
 
+		# Load the image as a kv object as well to not load 
+		# it every time during run time
+		if self.image and self.image_extension:
+			data = BytesIO()
+			self.image.save(data, format=self.image_extension)
+			data.seek(0)
+			im = kvImage(BytesIO(data.read()), ext=self.image_extension)
+			self.kv_image = im.texture
+
 
 
 	def get_new_stream(self, seek_to:Optional[int]=0) -> Generator:
@@ -43,6 +54,10 @@ class AudioFile:
 	def get_image(self) -> Tuple[Image.Image, str]:
 		"""Returns the PIL image and the file extension of it in a tuple"""
 		return (self.image, self.image_extension)
+
+	def get_image_kv(self) -> kvImage:
+		"""Returns the KV image"""
+		return self.kv_image
 
 	def __repr__(self) -> str:
 		return f'{self.title} - {self.artist} [{self.album}]'

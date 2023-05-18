@@ -157,6 +157,12 @@ class AudioHandler(Thread):
 			return []
 		return self.audio_queue[self._current_track_position].get_image()
 
+	def get_current_track_image_kv(self):
+		"""Returns current track image as KV image object"""
+		if not self.audio_queue:
+			return None
+		return self.audio_queue[self._current_track_position].get_image_kv()
+
 	def clear_queue(self) -> None:
 		"""Clears audio queue and pauses"""
 		self.pause()
