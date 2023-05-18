@@ -148,10 +148,6 @@ class AudioScreen(Screen):
 			self.manager.audio_handler.play_or_resume()
 		self.update()
 
-	def change_album_to(self, album:AudioAlbum) -> None:
-		self.audio_handler.clear_queue()
-		self.audio_handler.load_album_to_queue(album)
-		self.audio_handler.change_track_to(0)
 
 	def prev_track(self) -> None:
 		self.manager.go_to_previous_track(callback=self.manager.update)
