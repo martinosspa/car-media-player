@@ -2,36 +2,16 @@ from kivy.app import App
 from kivy.core.window import Window
 from kivy.uix.widget import Widget
 from kivy.lang import Builder
-from kivy.properties import (ObjectProperty, 
-							StringProperty, 
-							NumericProperty, 
-							BoundedNumericProperty, 
-							BooleanProperty,
-							AliasProperty)
-from kivy.uix.slider import Slider
+from kivy.properties import ObjectProperty
 from kivy.clock import mainthread
-from kivy.uix.screenmanager import Screen, ScreenManager, FadeTransition
-
+from kivy.uix.screenmanager import ScreenManager, FadeTransition
 from AudioHandler import AudioHandler
-from AudioAlbum import AudioAlbum
+from uiAudioScreen import AudioScreen
+from uiAlbums import AlbumScreen
+from uiSidemenu import SideMenu
+from uiEqualizer import EqualizerScreen
 
-from uiAudioScreen import AudioScreen, CircleButton
-from uiAlbums import AlbumScreen, AlbumButton
-from uiSidemenu import SideMenu, OpaqueImageButton
-
-kv_file = Builder.load_string('''
-<EqualizerScreen>:
-	BoxLayout:
-		canvas:
-			Color:
-				rgb: 0.3, 0.3, 0.3, 0.7
-			Rectangle:
-				size: self.size
-		id: layout
-		orientation: 'horizontal'
-		size_hint_x: 0.9
-
-		
+MAIN_SCREEN_KV = '''
 <MainScreen>:
 	id: main_screen
 	FloatLayout:
@@ -48,16 +28,8 @@ kv_file = Builder.load_string('''
 			x_opened: root.width * 0.8
 			_screen_manager: screen_manager
 
-''')
+'''
 
-class EqualizerScreen(Screen):
-	def __init__(self, **kwargs) -> None:
-		super().__init__(**kwargs)
-		for _ in range(10):
-			self.ids.layout.add_widget(Slider(min=-10, max=10, step=1, orientation='vertical'))
-	
-	def update(self) -> None:
-		pass
 
 
 class AudioHandlerScreenManager(ScreenManager):
@@ -81,7 +53,6 @@ class AudioHandlerScreenManager(ScreenManager):
 		self.audio_handler.set_change_callback(self.update)
 
 		self.update()
-	
 
 	def change_album_to(self, album_name: str) -> None:
 		self.audio_handler.clear_queue()
@@ -102,20 +73,25 @@ class AudioHandlerScreenManager(ScreenManager):
 class MainScreen(Widget):
 	screen_manager = ObjectProperty()
 
+	def __init__(self, **kwargs) -> None:
+		Builder.load_string(MAIN_SCREEN_KV)
+		super().__init__(**kwargs)
+
 class TestApp(App):
+	main_screen = None
 	def build(self):
-		self.MS = MainScreen()
+		self.main_screen = MainScreen()
 		Window.bind(on_request_close=self.close_audio_handler)
-		return self.MS
+		return self.main_screen
 
 	def change_album_to(self, album) -> None:
-		self.MS.ids.screen_manager.change_album_to(album)
-		self.MS.ids.screen_manager.current = 'audio_screen'
-		self.MS.ids.side_menu.set_opened_to(False)
-		self.MS.ids.screen_manager.get_screen('audio_screen').ids._progress_bar.value = 0
+		self.main_screen.ids.screen_manager.change_album_to(album)
+		self.main_screen.ids.screen_manager.current = 'audio_screen'
+		self.main_screen.ids.side_menu.set_opened_to(False)
+		self.main_screen.ids.screen_manager.get_screen('audio_screen').ids._progress_bar.value = 0
 
 	def close_audio_handler(self, _) -> None:
-		self.MS.ids.screen_manager.audio_handler.close()
+		self.main_screen.ids.screen_manager.audio_handler.close()
 
 
 
