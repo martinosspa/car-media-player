@@ -17,6 +17,7 @@ EQUALIZER_SCREEN_KV = '''
 '''
 
 class EqualizerScreen(Screen):
+	"""Screen that encapsulates the equalizer setup"""
 	def __init__(self, **kwargs) -> None:
 		Builder.load_string(EQUALIZER_SCREEN_KV)
 		super().__init__(**kwargs)

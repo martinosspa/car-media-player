@@ -1,8 +1,8 @@
+from io import BytesIO
+from typing import Generator, Tuple, Optional
 from miniaudio import stream_file, mp3_get_file_info
 from mutagen.id3 import ID3
-from io import BytesIO
 from PIL import Image
-from typing import Generator, Tuple, Optional
 from kivy.core.image import Image as kvImage
 
 class AudioFile:

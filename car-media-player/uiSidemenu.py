@@ -1,5 +1,4 @@
 from kivy.lang import Builder
-from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.uix.button import Button
 from kivy.properties import ObjectProperty, StringProperty
@@ -18,6 +17,7 @@ OPAQUE_IMAGE_BUTTON_KV = '''
 		allow_stretch: True
 		keep_ratio: True
 '''
+
 SIDEMENU_KV = '''
 <SideMenu>:
 	BoxLayout:
@@ -66,6 +66,7 @@ SIDEMENU_KV = '''
 
 
 class OpaqueImageButton(Button):
+	"""Opaque Button that is used for the selecting of other screens"""
 	_source = StringProperty()
 
 	def __init__(self, **kwargs) -> None:
@@ -73,6 +74,7 @@ class OpaqueImageButton(Button):
 		super().__init__(**kwargs)
 
 class SideMenu(Widget):
+	"""Encapsulates Opaque Image Buttons to select other screens"""
 	animation_duration = 0.3 # seconds
 	x_opened = 0
 	x_closed = 0
@@ -101,5 +103,6 @@ class SideMenu(Widget):
 			self.toggle_screen_size()
 
 	def change_screen_to(self, screen_name: str) -> None:
+		"""Changes the screen to the given screen name"""
 		print('change screen received')
 		self._screen_manager.current = screen_name

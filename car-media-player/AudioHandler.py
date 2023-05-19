@@ -1,10 +1,8 @@
-from miniaudio import PlaybackDevice, stream_with_callbacks
-from AudioFile import AudioFile
-from typing import Generator, Tuple, Optional, Callable
-import PIL
 from threading import Thread
+from typing import Tuple, Optional, Callable
 import time
-
+import PIL
+from miniaudio import PlaybackDevice, stream_with_callbacks
 from AudioAlbum import AudioAlbum
 from AudioLibrary import AudioLibrary
 
@@ -66,7 +64,7 @@ class AudioHandler(Thread):
 
 		self.audio_stream = stream_with_callbacks(self.current_track.get_new_stream(seek_to=seek_to),
 												progress_callback=lambda frames: self._progress_audio_callback(frames),
-												end_callback=lambda: self._set_next_track())
+												end_callback=self._set_next_track)
 		next(self.audio_stream)
 
 		#This is used to load correct sample_rate in to Playback Device

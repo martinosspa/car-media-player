@@ -8,10 +8,10 @@ from kivy.uix.screenmanager import ScreenManager, FadeTransition
 from AudioHandler import AudioHandler
 from uiAudioScreen import AudioScreen
 from uiAlbums import AlbumScreen
-from uiSidemenu import SideMenu
 from uiEqualizer import EqualizerScreen
 
 MAIN_SCREEN_KV = '''
+#: import SideMenu uiSidemenu.SideMenu
 <MainScreen>:
 	id: main_screen
 	FloatLayout:

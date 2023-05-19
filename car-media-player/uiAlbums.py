@@ -36,7 +36,8 @@ ALBUM_SCREEN_KV = '''
 '''
 
 class AlbumButton(Button):
-	album : AudioAlbum
+	"""Button that contains an ablum picture and transitions to that Album when selected"""
+	album:AudioAlbum
 	album_texture = ObjectProperty()
 
 	def __init__(self, a:AudioAlbum, **kwargs) -> None:
@@ -49,10 +50,11 @@ class AlbumButton(Button):
 		App.get_running_app().change_album_to(self.album)
 
 class AlbumScreen(Screen):
-
+	"""Screen that encapsulates all the Album Buttons"""
 	def __init__(self, **kwargs) -> None:
 		Builder.load_string(ALBUM_SCREEN_KV)
 		super().__init__(**kwargs)
+		
 	def on_pre_enter(self) -> None:
 		self.ids.layout.clear_widgets()
 		for album in self.manager.audio_handler.audio_library:

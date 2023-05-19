@@ -1,13 +1,8 @@
 from kivy.lang import Builder
 from kivy.uix.screenmanager import Screen
 from kivy.uix.button import Button
-from kivy.properties import (ObjectProperty,
-							NumericProperty,
-							StringProperty,
-							AliasProperty)
-from AudioHandler import AudioHandler
-from AudioAlbum import AudioAlbum
-from kivy.app import App
+from kivy.properties import ObjectProperty, NumericProperty, StringProperty, AliasProperty
+
 CIRCLE_BUTTON_KV = '''
 <CircleButton>:
 	background_color: 0, 0, 0, 0
@@ -97,9 +92,9 @@ AUDIO_SCREEN_KV = '''
 					on_press: root.next_track()
 '''
 class CircleButton(Button):
+	"""Circular buttons, used for skipping and pausing"""
 	_source = StringProperty()
 	
-
 	def __init__(self, **kwargs) -> None:
 		self.scale = AliasProperty(self.get_scale, None, bind=['height'])
 		Builder.load_string(CIRCLE_BUTTON_KV)
@@ -111,6 +106,7 @@ class CircleButton(Button):
 
 
 class AudioScreen(Screen):
+	"""Screen that encapsulates playing audio and displaying mp3 picture"""
 	background_texture = ObjectProperty()
 	progress = NumericProperty()
 
@@ -134,10 +130,10 @@ class AudioScreen(Screen):
 		else:
 			self.ids.middle_button._source = 'resources/play.png'
 
-	def update_slider(self, v):
+	def update_slider(self, new_value):
 		"""Updates the slide with the given argument"""
-		if 0 <= v <= 1:
-			self.ids._progress_bar.value = v
+		if 0 <= new_value <= 1:
+			self.ids._progress_bar.value = new_value
 
 
 	def toggle_play(self) -> None:
@@ -150,7 +146,9 @@ class AudioScreen(Screen):
 
 
 	def prev_track(self) -> None:
+		"""Switches to previous track if any"""
 		self.manager.go_to_previous_track(callback=self.manager.update)
 
 	def next_track(self) -> None:
+		"""Switches to next track if any"""
 		self.manager.go_to_next_track(callback=self.manager.update)
