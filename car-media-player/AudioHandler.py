@@ -1,159 +1,116 @@
-from threading import Thread
-from typing import Tuple, Optional, Callable
-import time
-import PIL
-from miniaudio import PlaybackDevice, stream_with_callbacks
-from AudioAlbum import AudioAlbum
+from typing import Callable
+from sounddevice import OutputStream as sdOutputStream
 from AudioLibrary import AudioLibrary
+from AudioFile import AudioFile
+from AudioAlbum import AudioAlbum
+class AudioHandler:
+	"""Class can load a singlular audio stream and play/pause it"""
+	playing = False
 
-class AudioHandler(Thread):
-	"""This class can load a single audio file, play and/or pause it"""
-
-	# General flags / options
-	playing = False # If a track is currently playing
-	running = False # If the thread should be running
-	_queue_next_track = False #Queue next track on next check
-
-	# Audio Library
 	audio_library = AudioLibrary()
 
-	# Audio track queue and info
 	audio_queue = []
-	audio_stream = None 
-	current_track = None 
+	current_track = None # Current track is a reference to the AudioFile object
+	current_stream = None # Current track Stream is a reference to just the stream
+	current_track_audio = None # Current track audio numpy array
 	_current_track_position = 0
 	current_library_max_length = 0
 
-	# Audio frame info
-	_current_frame = 0 # Current frame number the Playback Device is at
-	_frame_max = 0
-	_current_progress = 0 # Float 0 -> 1, 0.5 meaning the current audio track is at 50%
-		
-	# Callbacks
+	_current_frame, _frame_max = 0, 0
+
 	progress_callback = None
 	change_callback = None
 
 
-	def __init__(self):
-		Thread.__init__(self)
-		self.playback_device = PlaybackDevice()
-
-	def start(self) -> None:
-		"""Starts the Audio Handler thread and builds the library"""
-		super().start()
-		self.running = True
+	def __init__(self) -> None:
 		self.audio_library.build()
 
 	def _check_track_position_valid(self, new_position: int) -> bool:
-		"""Check if a new given track position is valid"""
-		if self.current_library_max_length > 0 and 0 <= new_position <= self.current_library_max_length:
+		if self.current_library_max_length > 1 and 0 < new_position <= self.current_library_max_length:
 			return True
-		print(f'audio library position out of bounds [{0} - {self.current_library_max_length}] -> {new_position}')
+		print(f'audio library position out of bounds [0 - {self.current_library_max_length}] -> {new_position}')
 		return False
-		
+
+	def _finished_callback(self) -> None:
+		pass
+		#self.close()
+		#self.go_to_next_track()
+
 	def change_track_to(self, new_position: int) -> None:
 		"""Changes the track position without loading it"""
-		self._current_track_position = new_position
+		if self._check_track_position_valid(new_position):
+			self._current_track_position = new_position
 
-	def load_track(self, seek_to:Optional[int] = 0) -> None:
+	def create_stream(self, audio_file:AudioFile) -> sdOutputStream:
+		"""Casts the current loaded AudioFile in to a SoundDevice stream"""
+		return sdOutputStream(
+				samplerate=audio_file.sample_rate,
+				channels=audio_file.channels, 
+				callback=self._internal_callback,
+				finished_callback=self._finished_callback,
+				blocksize=1024)
+
+	def _internal_callback(self, outdata, frames, time, status) -> None:
+		"""Callback for loading the audio data frames, this should NOT be used outside of this object"""
+		#if not self.playing:
+		#	return
+		outdata[:] = self.current_track_audio[self._current_frame:self._current_frame+frames]
+		self._current_frame += frames
+
+	def load_track(self) -> None:
 		"""Loads the current track in to memory from _current_track_position
 		   Cant load a track if another one is already playing"""
 		self.current_track = self.audio_queue[self._current_track_position]
 		self._frame_max = self.current_track.get_frame_volume()
 		self._current_frame = 0
+		self.current_track_audio = self.current_track.get_audio()
 
-		self.audio_stream = stream_with_callbacks(self.current_track.get_new_stream(seek_to=seek_to),
-												progress_callback=lambda frames: self._progress_audio_callback(frames),
-												end_callback=self._set_next_track)
-		next(self.audio_stream)
-
-		#This is used to load correct sample_rate in to Playback Device
-		if not self.current_track.info.sample_rate == self.playback_device.sample_rate:
-			self.playback_device = PlaybackDevice(sample_rate=self.current_track.info.sample_rate)
-
-		if seek_to:
-			self._current_frame = seek_to
-
-	def play_or_resume(self) -> None:
-		"""Plays the track at the _current_track_position"""
-		if not self.audio_stream:
-			return
-		self.playback_device.start(self.audio_stream)
-		self.playing = True
-		
-	def set_change_callback(self, callback:Callable) -> None:
-		self.change_callback = callback
-		
-	def set_progress_callback(self, callback:Callable) -> None:
-		"""This callback is called when a frame of audio is played. It must take 1 arg"""
-		self.progress_callback = callback
-
-	def _set_next_track(self) -> None:
-		self._queue_next_track = True
-
-	def _progress_audio_callback(self, frame_count: int) -> None:
-		"""Private callback method to update self progress, current frame, and call the progress callback if it's set"""
-		self._current_frame += frame_count
-		self._current_progress = self._current_frame/self._frame_max
-
-		if self.progress_callback:
-			self.progress_callback(self._current_progress)
-
-
-	def close(self) -> bool:
-		"""This closes the audio handler safely"""
-		self.playback_device.stop()
-		self.playing = False
-		self.audio_stream = None
-		self.running = False
-		self.playback_device.close()
-		return False
+		self.current_stream = self.create_stream(self.current_track)
 
 	def pause(self) -> None:
 		"""Pause playback"""
-		self.playback_device.stop()
+		self.current_stream.stop()
 		self.playing = False
-		
-	def go_to_next_track(self, callback:Optional[Callable] = None) -> None:
-		"""Loads and plays next track"""
-		new_track_position = self._current_track_position + 1
-		if not self._check_track_position_valid(new_track_position):
-			return
-		self.pause()
-		self.change_track_to(new_track_position)
-		self.load_track()
-		if callback:
-			callback()
 
-		self.play_or_resume()
+	def close(self) -> None:
+		"""Closes safely"""
+		self.current_track.close()
 
-	def go_to_previous_track(self, callback:Optional[Callable] = None) -> None:
-		"""Loads and plays previous track"""
-		new_track_position = self._current_track_position - 1
-		if not self._check_track_position_valid(new_track_position):
+	def play_or_resume(self) -> None:
+		"""Plays or resumes the current track loaded, if any"""
+		if not self.current_stream:
 			return
-		self.pause()
-		self.change_track_to(new_track_position)
-		self.load_track()
-		if callback:
-			callback()
-		self.play_or_resume()
+		self.current_stream.start()
+		self.playing = True
 
 	def load_album_to_queue(self, album:AudioAlbum) -> None:
-		"""Loads a certain AudioAlbum from the audio library in to the queue"""
-		if not album:
-			return
+		"""Load an album in the queue if it exists"""
 		if album not in self.audio_library:
-			raise LookupError(f'Album provided ({album}) not in Audio Library')
+			raise LookupError(f'Album provided {album} not in library')
 		self.audio_queue.extend(album)
-		self.current_library_max_length = len(self.audio_queue) - 1
+		self.current_library_max_length = len(self.audio_queue)
 		self.load_track()
-		
-	def get_current_track_image(self) -> Tuple[PIL.Image.Image, str]:
-		"""Returns current track image as PIL image and it's file extension as a tuple"""
-		if not self.audio_queue:
-			return []
-		return self.audio_queue[self._current_track_position].get_image()
+
+	def _switch_track_relative_position(self, new_position:int, callback:Callable=None) -> None:
+		"""Switches to a relative spot in queue, helper method for
+		go_to_next_track and go_to_previous_track"""
+		new_track_position = self._current_track_position + new_position
+		if not self._check_track_position_valid(new_track_position):
+			return
+		self.pause()
+		self.change_track_to(new_track_position)
+		self.load_track()
+		if callback:
+			callback()
+		self.play_or_resume()
+
+	def go_to_next_track(self, callback:Callable=None) -> None:
+		"""Loads next track and plays it"""
+		self._switch_track_relative_position(1, callback=callback)
+
+	def go_to_previous_track(self, callback:Callable=None) -> None:
+		"""Loads previous track and plays it"""
+		self._switch_track_relative_position(-1, callback=callback)
 
 	def get_current_track_image_kv(self):
 		"""Returns current track image as KV image object"""
@@ -164,25 +121,25 @@ class AudioHandler(Thread):
 	def clear_queue(self) -> None:
 		"""Clears audio queue and pauses"""
 		self.pause()
-		self.audio_stream = None
 		self.audio_queue = []
 		self.current_library_max_length = 0
 		self._current_track_position = 0
+		self._current_frame = 0
 
+	def set_change_callback(self, callback:Callable) -> None:
+		self.change_callback = callback
+		
+	def set_progress_callback(self, callback:Callable) -> None:
+		"""This callback is called when a frame of audio is played. It must take 1 arg"""
+		self.progress_callback = callback
 
-	def run(self) -> None:
-		"""This shouldn't be called from the user, but from parent thread class since this is a threaded class"""
-		while self.running:
-			if self._queue_next_track:
-				self._queue_next_track = False
-				self.go_to_next_track(self.change_callback)
-			time.sleep(0.01)
-	
 	def __del__(self) -> None:
-		self.close()
+		pass
+		#self.close()
 
-	def seek_to_percentage(self, value: float) -> None:
-		self.pause()
-		seek_frame_value = int(value * self._frame_max)
-		self.load_track(seek_to=seek_frame_value)
-		self.play_or_resume()
+
+if __name__ == '__main__':
+	AH = AudioHandler()
+	AH.load_album_to_queue(AH.audio_library.get(0))
+	AH.play_or_resume()
+	AH.close()

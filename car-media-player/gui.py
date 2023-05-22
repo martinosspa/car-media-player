@@ -39,7 +39,7 @@ class AudioHandlerScreenManager(ScreenManager):
 		super().__init__(transition=FadeTransition(), **kwargs)
 		
 		self.audio_handler = AudioHandler()
-		self.audio_handler.start()
+		#self.audio_handler.start()
 
 		self.add_widget(AudioScreen(name='audio_screen'))
 		self.add_widget(AlbumScreen(name='album_screen'))
@@ -48,8 +48,8 @@ class AudioHandlerScreenManager(ScreenManager):
 		# temporary
 		self.audio_handler.load_album_to_queue(self.audio_handler.audio_library.get(0))
 
-		self.audio_handler.set_progress_callback(self.get_screen('audio_screen').update_slider)
-		self.audio_handler.set_change_callback(self.update)
+		#self.audio_handler.set_progress_callback(self.get_screen('audio_screen').update_slider)
+		#self.audio_handler.set_change_callback(self.update)
 
 		self.update()
 

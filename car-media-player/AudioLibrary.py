@@ -1,4 +1,3 @@
-#from AudioFile import AudioFile
 from AudioAlbum import AudioAlbum
 import os
 from typing import List
@@ -73,3 +72,8 @@ class AudioLibrary:
 			return r
 		else:
 			raise StopIteration
+
+	def close(self) -> None:
+		"""Safely close"""
+		for album in self.albums:
+			album.close()

@@ -53,4 +53,8 @@ class AudioAlbum:
 	def __eq__(self, other) -> bool:
 		return other.name == self.name and other.artist == self.artist
 
+	def close(self) -> None:
+		"""Safely close"""
+		for file in self._audio_files:
+			file.close()
 

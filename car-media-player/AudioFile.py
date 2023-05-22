@@ -1,16 +1,30 @@
 from io import BytesIO
-from typing import Generator, Tuple, Optional
-from miniaudio import stream_file, mp3_get_file_info
-from mutagen.id3 import ID3
+from typing import Tuple
+from mutagen.id3 import ID3 as mutagen_ID3
 from PIL import Image
+from kivy.core.window import Window
 from kivy.core.image import Image as kvImage
+from sounddevice import OutputStream as sdOutputStream
+from pedalboard import Pedalboard
+from pedalboard.io import AudioFile as pedalboardAudioFile
 
 class AudioFile:
 	"""This class is used to load audio file info and audio streams."""
+	file_name = None
+	_file = None
+	image, image_extension = None, None
+	title, artist = None, None
+	album = None
+
+	channels = None
+	sample_rate = None
+	sample_total = None
+	length_seconds = None
 
 	def __init__(self, path:str, album=None) -> None:
 		self.file_name = path
-		tags = ID3(self.file_name)
+		self._file = pedalboardAudioFile(self.file_name)
+		tags = mutagen_ID3(self.file_name)
 		# apic is the image in the mp3 tags
 		apic = tags.get('APIC:') if tags.get('APIC:') else None
 		
@@ -28,13 +42,15 @@ class AudioFile:
 			self.album = album
 		else:
 			self.album = None
-		# get frame info for progress callbacks and displaying
-		self.info = mp3_get_file_info(self.file_name)
-		self._frame_size = self.info.sample_rate
-		self._total_frame_count = self.info.num_frames
 
-		# Load the image as a kv object as well to not load 
-		# it every time during run time
+		# get frame info for progress callbacks and displaying
+		#playback_info = mutagen_MP3(self.file_name).info
+		self.sample_rate = self._file.samplerate
+		self.channels = self._file.num_channels
+		self.length_seconds = int(self._file.duration)
+		self.sample_total = self._file.frames
+
+		# Preload kvImage
 		if self.image and self.image_extension:
 			data = BytesIO()
 			self.image.save(data, format=self.image_extension)
@@ -42,14 +58,15 @@ class AudioFile:
 			im = kvImage(BytesIO(data.read()), ext=self.image_extension)
 			self.kv_image = im.texture
 
-
-
-	def get_new_stream(self, seek_to:Optional[int]=0) -> Generator:
-		return stream_file(self.file_name, sample_rate=self.info.sample_rate, seek_frame=seek_to)
+	def get_audio(self, pb:Pedalboard = None) -> sdOutputStream:
+		"""Returns the full audio numpy array, A pedalboard is optional"""
+		if pb:
+			return pb(self.get_audio(), self.sample_rate)
+		return self._file.read(self.sample_total).T
 
 	def get_frame_volume(self) -> int:
 		"""Gets the total number of audio frames this audio file has"""
-		return self._total_frame_count
+		return self.sample_total
 
 	def get_image(self) -> Tuple[Image.Image, str]:
 		"""Returns the PIL image and the file extension of it in a tuple"""
@@ -61,3 +78,16 @@ class AudioFile:
 
 	def __repr__(self) -> str:
 		return f'{self.title} - {self.artist} [{self.album}]'
+
+	def close(self) -> None:
+		"""Closes the file safely"""
+		self._file.close()
+		
+if __name__ == '__main__':
+	# TEST
+	
+	test = AudioFile('audio/02. It\'s So Creamy.mp3')
+	print(test.channels)
+	print(test.sample_rate)
+	print(test.sample_total)
+	print(test.length_seconds)
