@@ -1,5 +1,6 @@
 from typing import Callable
 from sounddevice import OutputStream as sdOutputStream
+from sounddevice import CallbackAbort
 from AudioLibrary import AudioLibrary
 from AudioFile import AudioFile
 from AudioAlbum import AudioAlbum
@@ -21,7 +22,7 @@ class AudioHandler:
 	progress_callback = None
 	change_callback = None
 
-
+	BLOCKSIZE = 1024
 	def __init__(self) -> None:
 		self.audio_library.build()
 
@@ -32,9 +33,15 @@ class AudioHandler:
 		return False
 
 	def _finished_callback(self) -> None:
-		pass
-		#self.close()
-		#self.go_to_next_track()
+		'''This callback gets called when a track finishes or gets paused'''
+		if self._current_frame > self._frame_max - self.BLOCKSIZE:
+			self.playing = False
+			self.close()
+			if self.change_callback:
+				self.change_callback()
+			self.go_to_next_track()
+
+			
 
 	def change_track_to(self, new_position: int) -> None:
 		"""Changes the track position without loading it"""
@@ -48,14 +55,21 @@ class AudioHandler:
 				channels=audio_file.channels, 
 				callback=self._internal_callback,
 				finished_callback=self._finished_callback,
-				blocksize=1024)
+				blocksize=self.BLOCKSIZE)
 
 	def _internal_callback(self, outdata, frames, time, status) -> None:
 		"""Callback for loading the audio data frames, this should NOT be used outside of this object"""
 		#if not self.playing:
 		#	return
+		if self._current_frame > self._frame_max - self.BLOCKSIZE:
+			# This triggers that the track has finished and thus calling the finished callback
+			# Also prevents the last frame call to raise an error due to incorrect block size
+			raise CallbackAbort() 
+
 		outdata[:] = self.current_track_audio[self._current_frame:self._current_frame+frames]
 		self._current_frame += frames
+		if self.progress_callback:
+			self.progress_callback(self._current_frame/self._frame_max)
 
 	def load_track(self) -> None:
 		"""Loads the current track in to memory from _current_track_position
@@ -136,10 +150,3 @@ class AudioHandler:
 	def __del__(self) -> None:
 		pass
 		#self.close()
-
-
-if __name__ == '__main__':
-	AH = AudioHandler()
-	AH.load_album_to_queue(AH.audio_library.get(0))
-	AH.play_or_resume()
-	AH.close()

@@ -48,8 +48,8 @@ class AudioHandlerScreenManager(ScreenManager):
 		# temporary
 		self.audio_handler.load_album_to_queue(self.audio_handler.audio_library.get(0))
 
-		#self.audio_handler.set_progress_callback(self.get_screen('audio_screen').update_slider)
-		#self.audio_handler.set_change_callback(self.update)
+		self.audio_handler.set_progress_callback(self.get_screen('audio_screen').update_slider)
+		self.audio_handler.set_change_callback(self.update)
 
 		self.update()
 
@@ -58,7 +58,7 @@ class AudioHandlerScreenManager(ScreenManager):
 		self.audio_handler.load_album_to_queue(album_name)
 		self.update()
 
-	@mainthread
+	@mainthread # <- NOT removing this, stuff might break
 	def update(self) -> None:
 		for screen in self.screens:
 			screen.update()
