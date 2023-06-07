@@ -78,6 +78,7 @@ class MainScreen(Widget):
 
 class TestApp(App):
 	main_screen = None
+	equalizer_values = []
 	def build(self):
 		self.main_screen = MainScreen()
 		Window.bind(on_request_close=self.close_audio_handler)
@@ -88,10 +89,14 @@ class TestApp(App):
 		self.main_screen.ids.screen_manager.current = 'audio_screen'
 		self.main_screen.ids.side_menu.set_opened_to(False)
 		self.main_screen.ids.screen_manager.get_screen('audio_screen').update_slider(0)
-		
+	
+	def set_equalizer_values(self, values) -> None:
+		self.equalizer_values = values
+		self.main_screen.ids.screen_manager.audio_handler.update_pedalboard_filters(self.equalizer_values)
+
+
 	def close_audio_handler(self, _) -> None:
 		self.main_screen.ids.screen_manager.audio_handler.close()
-
 
 
 

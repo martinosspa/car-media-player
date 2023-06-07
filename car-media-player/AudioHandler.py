@@ -1,9 +1,10 @@
 from typing import Callable
 from sounddevice import OutputStream as sdOutputStream
 from sounddevice import CallbackAbort
+from pedalboard import Pedalboard, PeakFilter
+from AudioAlbum import AudioAlbum
 from AudioLibrary import AudioLibrary
 from AudioFile import AudioFile
-from AudioAlbum import AudioAlbum
 class AudioHandler:
 	"""Class can load a singlular audio stream and play/pause it"""
 	playing = False
@@ -13,7 +14,6 @@ class AudioHandler:
 	audio_queue = []
 	current_track = None # Current track is a reference to the AudioFile object
 	current_stream = None # Current track Stream is a reference to just the stream
-	current_track_audio = None # Current track audio numpy array
 	_current_track_position = 0
 	current_library_max_length = 0
 
@@ -22,7 +22,12 @@ class AudioHandler:
 	progress_callback = None
 	change_callback = None
 
-	BLOCKSIZE = 1024
+	# 1024 is too slow sometimes
+	# 1024 + 512 + 64 does the trick
+	BLOCKSIZE = 1600
+
+	pedalboard = Pedalboard()
+
 	def __init__(self) -> None:
 		self.audio_library.build()
 
@@ -66,7 +71,7 @@ class AudioHandler:
 			# Also prevents the last frame call to raise an error due to incorrect block size
 			raise CallbackAbort() 
 
-		outdata[:] = self.current_track_audio[self._current_frame:self._current_frame+frames]
+		outdata[:] = self.current_track.get_audio(self._current_frame, self._current_frame+frames, pb=self.pedalboard)
 		self._current_frame += frames
 		if self.progress_callback:
 			self.progress_callback(self._current_frame/self._frame_max)
@@ -77,8 +82,6 @@ class AudioHandler:
 		self.current_track = self.audio_queue[self._current_track_position]
 		self._frame_max = self.current_track.get_frame_volume()
 		self._current_frame = 0
-		self.current_track_audio = self.current_track.get_audio()
-
 		self.current_stream = self.create_stream(self.current_track)
 
 	def pause(self) -> None:
@@ -140,7 +143,18 @@ class AudioHandler:
 		self._current_track_position = 0
 		self._current_frame = 0
 
+	def update_pedalboard_filters(self, values) -> None:
+		"""Updates the internal pedalboard peak filter values
+			List passed must be of length 10"""
+		if not len(values) == 10:
+			return
+		frequencies = [32, 64, 128, 256, 512, 1_024, 2_048, 4_096, 8_192, 16_384]
+		self.pedalboard = Pedalboard()
+		for pos, freq in enumerate(frequencies):
+			self.pedalboard.append(PeakFilter(freq, values[pos]))
+		
 	def set_change_callback(self, callback:Callable) -> None:
+		"""Callback called when the song changes"""
 		self.change_callback = callback
 		
 	def set_progress_callback(self, callback:Callable) -> None:

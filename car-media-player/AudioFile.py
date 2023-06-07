@@ -2,12 +2,11 @@ from io import BytesIO
 from typing import Tuple
 from mutagen.id3 import ID3 as mutagen_ID3
 from PIL import Image
-from kivy.core.window import Window
 from kivy.core.image import Image as kvImage
-from sounddevice import OutputStream as sdOutputStream
 from pedalboard import Pedalboard
 from pedalboard.io import AudioFile as pedalboardAudioFile
-
+from numpy import copy as np_copy
+from numpy import array as np_array
 class AudioFile:
 	"""This class is used to load audio file info and audio streams."""
 	file_name = None
@@ -24,6 +23,7 @@ class AudioFile:
 	def __init__(self, path:str, album=None) -> None:
 		self.file_name = path
 		self._file = pedalboardAudioFile(self.file_name)
+		self._file_original = self._file
 		tags = mutagen_ID3(self.file_name)
 		# apic is the image in the mp3 tags
 		apic = tags.get('APIC:') if tags.get('APIC:') else None
@@ -49,6 +49,7 @@ class AudioFile:
 		self.channels = self._file.num_channels
 		self.length_seconds = int(self._file.duration)
 		self.sample_total = self._file.frames
+		self.sample_array = self._file.read(self.sample_total)
 
 		# Preload kvImage
 		if self.image and self.image_extension:
@@ -58,12 +59,11 @@ class AudioFile:
 			im = kvImage(BytesIO(data.read()), ext=self.image_extension)
 			self.kv_image = im.texture
 
-	def get_audio(self, pb:Pedalboard = None) -> sdOutputStream:
-		"""Returns the full audio numpy array, A pedalboard is optional"""
-		if pb:
-			return pb(self.get_audio(), self.sample_rate)
-		return self._file.read(self.sample_total).T
-
+	def get_audio(self, start_pos:int, end_pos:int, pb:Pedalboard) -> np_array:
+		"""Returns the full audio numpy array proccessed throught a pedalboard"""
+		file_samples = np_copy(self.sample_array[:, start_pos:end_pos])
+		return pb(file_samples, self.sample_rate).T
+		
 	def get_frame_volume(self) -> int:
 		"""Gets the total number of audio frames this audio file has"""
 		return self.sample_total
