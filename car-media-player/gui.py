@@ -31,26 +31,21 @@ MAIN_SCREEN_KV = '''
 '''
 
 class AudioHandlerScreenManager(ScreenManager):
-	"""Screen manager & thread hadling for front-end side"""
+	"""Screen manager & thread handling for front-end side"""
 	audio_handler: AudioHandler
 	_side_menu = ObjectProperty()
 
 	def __init__(self, **kwargs) -> None:
 		super().__init__(transition=FadeTransition(), **kwargs)
-		
 		self.audio_handler = AudioHandler()
-		#self.audio_handler.start()
-
 		self.add_widget(AudioScreen(name='audio_screen'))
 		self.add_widget(AlbumScreen(name='album_screen'))
 		self.add_widget(EqualizerScreen(name='equalizer_screen'))
-
 		# temporary
 		self.audio_handler.load_album_to_queue(self.audio_handler.audio_library.get(0))
 
 		self.audio_handler.set_progress_callback(self.get_screen('audio_screen').update_slider)
 		self.audio_handler.set_change_callback(self.update)
-
 		self.update()
 
 	def change_album_to(self, album_name: str) -> None:
@@ -71,7 +66,6 @@ class AudioHandlerScreenManager(ScreenManager):
 		
 class MainScreen(Widget):
 	screen_manager = ObjectProperty()
-
 	def __init__(self, **kwargs) -> None:
 		Builder.load_string(MAIN_SCREEN_KV)
 		super().__init__(**kwargs)

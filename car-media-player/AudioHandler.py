@@ -45,7 +45,6 @@ class AudioHandler:
 			if self.change_callback:
 				self.change_callback()
 			self.go_to_next_track()
-
 			
 
 	def change_track_to(self, new_position: int) -> None:
@@ -151,7 +150,7 @@ class AudioHandler:
 		frequencies = [32, 64, 128, 256, 512, 1_024, 2_048, 4_096, 8_192, 16_384]
 		self.pedalboard = Pedalboard()
 		for pos, freq in enumerate(frequencies):
-			self.pedalboard.append(PeakFilter(freq, values[pos]))
+			self.pedalboard.append(PeakFilter(freq, values[pos], q=0.3))
 		
 	def set_change_callback(self, callback:Callable) -> None:
 		"""Callback called when the song changes"""
