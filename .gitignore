@@ -10,6 +10,8 @@ __pycache__/
 # Audio Ignore
 *.mp3
 
+# Notes ignore
+*.note
 
 # Image ignore
 *.jpeg
