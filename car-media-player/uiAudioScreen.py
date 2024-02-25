@@ -24,8 +24,6 @@ CIRCLE_BUTTON_KV = '''
 		y: root.y 
 		source: root._source
 		color: [0.5, 0.5, 0.5, 0.5] if root.state == "normal" else [1, 0.3, 0.3, 0.5]
-		allow_stretch: True
-		keep_ratio: True
 '''
 
 AUDIO_SCREEN_KV = '''
@@ -51,13 +49,9 @@ AUDIO_SCREEN_KV = '''
 				y: root.height * -0.25
 			
 				texture: root.background_texture
-				allow_stretch: True
-				keep_ratio: False
 		# foreground image
 		Image:
 			texture: root.background_texture
-			allow_stretch: True
-			keep_ratio: True
 		BoxLayout:
 			orientation: 'vertical'
 			size_hint: 1, 0.15

@@ -14,8 +14,6 @@ OPAQUE_IMAGE_BUTTON_KV = '''
 		#color: 1, 1, 1, 1
 		pos: root.pos
 		source: root._source
-		allow_stretch: True
-		keep_ratio: True
 '''
 
 SIDEMENU_KV = '''

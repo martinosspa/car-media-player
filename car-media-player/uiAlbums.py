@@ -12,8 +12,7 @@ ALBUM_BUTTON_KV = '''
 		pos: root.pos
 		size: root.size
 		texture: root.album_texture
-		allow_stretch: True
-		keep_ratio: True
+
 '''
 
 ALBUM_SCREEN_KV = '''
