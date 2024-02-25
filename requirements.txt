@@ -2,3 +2,4 @@ pedalboard >= 0.8.9
 kivy >= 2.3.0
 mutagen >= 1.47.0
 pillow >= 10.2.0
+sounddevice >= 0.4.6
